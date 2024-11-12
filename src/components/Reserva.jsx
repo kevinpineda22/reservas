@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 
 function ReservaForm() {
   const [nombre, setNombre] = useState('');
-  const [cedula, setCedula] = useState('');
   const [fecha, setFecha] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFinal, setHoraFinal] = useState('');
   const [salon, setSalon] = useState('Auditorio Principal');
-  const [telefono, setTelefono] = useState(''); // Nuevo campo de teléfono
-  const [correo, setCorreo] = useState(''); // Nuevo campo de correo
+  const [area, setArea] = useState(''); // Nuevo campo de área
+  const [motivo, setMotivo] = useState(''); // Nuevo campo de motivo
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
 
@@ -30,7 +29,7 @@ function ReservaForm() {
       return;
     }
 
-    const reservaData = { nombre, cedula, fecha, horaInicio, horaFinal, salon, telefono, correo };
+    const reservaData = { nombre,fecha, horaInicio, horaFinal, salon, area, motivo };
 
     // Enviar la reserva al backend
     fetch('https://reservas-zer3.onrender.com/reservar', {
@@ -57,12 +56,14 @@ function ReservaForm() {
       <h2>Formulario de Reserva</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="salon">Selecciona el salón:</label>
+          <label htmlFor="salon">salón:</label>
           <select
             id="salon"
             value={salon}
             onChange={(e) => setSalon(e.target.value)}
+            required
           >
+            <option value="">Seleccione el salón</option>
             <option value="Auditorio Principal">Auditorio Principal</option>
             <option value="Sala de Juntas">Sala de Juntas</option>
           </select>
@@ -78,34 +79,27 @@ function ReservaForm() {
           />
         </div>
         <div>
-          <label htmlFor="cedula">Cédula:</label>
-          <input
-            type="text"
-            id="cedula"
-            value={cedula}
-            onChange={(e) => setCedula(e.target.value)}
+          <label htmlFor="area">Área:</label>
+          <select
+            id="area"
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
             required
-          />
+          >
+            <option value="">Seleccione el área</option>
+            <option value="Gestión humana">Gestión humana</option>
+            <option value="Operaciones">Operaciones</option>
+            <option value="Contabilidad">Contabilidad</option>
+          </select>
         </div>
         <div>
-          <label htmlFor="telefono">Teléfono:</label>
-          <input
-            type="text"
-            id="telefono"
-            value={telefono}
-            onChange={(e) => setTelefono(e.target.value)}
+          <label htmlFor="motivo">Motivo de la reserva:</label>
+          <textarea
+            id="motivo"
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
             required
-          />
-        </div>
-        <div>
-          <label htmlFor="correo">Correo:</label>
-          <input
-            type="email"
-            id="correo"
-            value={correo}
-            onChange={(e) => setCorreo(e.target.value)}
-            required
-          />
+          ></textarea>
         </div>
         <div>
           <label htmlFor="fecha">Fecha:</label>

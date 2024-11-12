@@ -26,7 +26,7 @@ pool.connect()
   });
 
 app.post('/reservar', async (req, res) => {
-  const { nombre, cedula, fecha, horaInicio, horaFinal, salon, telefono, correo } = req.body;
+  const { nombre, area, motivo, fecha, horaInicio, horaFinal, salon,  } = req.body;
   const tableName = salon.toLowerCase() === 'sala de juntas' ? 'sala_juntas_reservas' : 'auditorio_reservas';
 
   try {
@@ -48,11 +48,11 @@ app.post('/reservar', async (req, res) => {
 
     const insertQuery = `
       INSERT INTO ${tableName}
-      (usuario_nombre, cedula, fecha, hora_inicio, hora_fin, telefono, correo, estado, salon)
+      (usuario_nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
       VALUES ($1, $2, $3, $4, $5, $6, $7, 'reservado', $8)
     `;
 
-    await pool.query(insertQuery, [nombre, cedula, fecha, horaInicio, horaFinal, telefono, correo, salon]);
+    await pool.query(insertQuery, [nombre, area ,motivo, fecha, horaInicio, horaFinal,salon]);
     res.json({ mensaje: 'Reserva realizada con éxito' });
 
   } catch (error) {
