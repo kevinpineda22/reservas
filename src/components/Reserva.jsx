@@ -33,7 +33,7 @@ function ReservaForm() {
     const reservaData = { nombre, cedula, fecha, horaInicio, horaFinal, salon, telefono, correo };
 
     // Enviar la reserva al backend
-    fetch('http://129.123.150:3000/reservar', {
+    fetch('https://reservas-zer3.onrender.com/reservar', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
