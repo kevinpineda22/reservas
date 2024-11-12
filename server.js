@@ -52,7 +52,7 @@ app.post('/reservar', async (req, res) => {
       VALUES ($1, $2, $3, $4, $5, $6, $7, 'reservado', $8)
     `;
 
-    await pool.query(insertQuery, [nombre, area ,motivo, fecha, horaInicio, horaFinal,salon]);
+    await pool.query(insertQuery, [nombre, area ,motivo, fecha, horaInicio, horaFinal,'reservado',salon]);
     res.json({ mensaje: 'Reserva realizada con éxito' });
 
   } catch (error) {
