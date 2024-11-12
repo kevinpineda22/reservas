@@ -49,7 +49,7 @@ app.post('/reservar', async (req, res) => {
     const insertQuery = `
       INSERT INTO ${tableName}
       (usuario_nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, 'reservado', $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
     await pool.query(insertQuery, [nombre, area ,motivo, fecha, horaInicio, horaFinal,'reservado',salon]);
