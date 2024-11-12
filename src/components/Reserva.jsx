@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-
+import '../components/Reserva.css';
 function ReservaForm() {
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFinal, setHoraFinal] = useState('');
-  const [salon, setSalon] = useState('Auditorio Principal');
+  const [salon, setSalon] = useState('');
   const [area, setArea] = useState(''); // Nuevo campo de área
   const [motivo, setMotivo] = useState(''); // Nuevo campo de motivo
   const [mensaje, setMensaje] = useState('');
@@ -53,10 +53,10 @@ function ReservaForm() {
 
   return (
     <div>
-      <h2>Formulario de Reserva</h2>
+      <h2>Reserva tu espacio</h2>
       <form onSubmit={handleSubmit}>
         <div>
-          <label htmlFor="salon">salón:</label>
+          <label htmlFor="salon">Salón:</label>
           <select
             id="salon"
             value={salon}
