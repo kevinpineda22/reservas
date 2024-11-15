@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import '../components/Reserva.css';
+import { Link } from 'react-router-dom'
+import '../pages/Reserva.css';
 function ReservaForm() {
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
@@ -52,7 +53,7 @@ function ReservaForm() {
   };
 
   return (
-    <div>
+    <div className='kevin'>
       <h2>Reserva tu espacio</h2>
       <form onSubmit={handleSubmit}>
         <div>

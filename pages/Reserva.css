@@ -1,4 +1,8 @@
+.kevin{
+  background-color: white;
+}
 h2 {
+  
     color: #210D65;
     text-align: center;
     font-size: 2rem;
@@ -7,6 +11,7 @@ h2 {
   
   /* Contenedor del formulario */
   form {
+    
     max-width: 500px;
     margin: 0 auto;
     background-color: white;
@@ -16,6 +21,7 @@ h2 {
   }
   
   form div {
+    
     margin-bottom: 15px;
   }
   

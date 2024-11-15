@@ -1,0 +1,154 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
+
+body {
+  font-family: "Poppins", sans-serif; /* Fuente moderna y limpia */
+  margin: 0;
+  background: linear-gradient(90deg, #210d65, #0077b6);
+  padding: 0;
+}
+
+.header {
+  padding: 40px 20px;
+  text-align: center;
+  color: #fff;
+  
+}
+
+.header h1 {
+  font-size: 2.5rem; /* Fuente más grande en pantallas grandes */
+  margin-bottom: 30px;
+}
+
+.image-container {
+  display: inline-block;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 400px;
+  margin: 2px auto;
+  text-align: center;
+  transition: transform 0.3s ease;
+  margin: 15px;
+}
+
+.image-container:hover {
+  transform: scale(1.1); /* Efecto de zoom al pasar el ratón */
+}
+
+/* Estilos para las imágenes */
+.header-image {
+  width: 100%;
+  height: 300px; /* Ajuste según el tamaño deseado */
+  display: flex;
+  border-radius: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); /* Sombra para dar profundidad */
+}
+
+.image-title {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+.reserve-link {
+  display: flex;
+  margin-top: 30px;
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: black;
+  background-color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.reserve-link:hover {
+  background-color: #89dc00;
+  transform: translateY(-3px); /* Efecto de elevación */
+}
+
+@media (max-width: 1024px) {
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .image-container {
+    display: flex;
+    flex-direction: column; /* Coloca la imagen y el título en una columna */
+    align-items: center; /* Centra el contenedor en la pantalla */
+    width: 70%; /* Usa el 90% del ancho para mejorar el ajuste */
+    max-width: 450px; /* Limita el ancho máximo en pantallas grandes */
+    margin: 20px auto; /* Centra el contenedor horizontalmente */
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s ease;
+  }
+
+  .header-image {
+    width: 100%; /* Ocupa el ancho completo del contenedor */
+    height: auto; /* Mantiene la proporción de la imagen */
+    max-height: 322px; /* Ajusta la altura para evitar que se estire demasiado */
+    object-fit: cover;
+    border-radius: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    margin-bottom: 10px;
+    
+  }
+
+  .reserve-link {
+    font-size: 1.1rem;
+    margin-top: 15px; /* Añade espacio arriba del enlace de reserva */
+  }
+}
+
+/* Diseño responsivo para dispositivos móviles */
+@media (max-width: 480px) {
+  body {
+    padding: 10px; /* Agrega espacio en los bordes */
+  }
+
+  .header h1 {
+    font-size: 1.8rem; /* Ajusta el tamaño del título en pantallas muy pequeñas */
+  }
+
+  .image-container {
+    width: 70%; /* Ocupa todo el ancho para dispositivos pequeños */
+    margin: 10px auto;
+    gap: 8px;
+  }
+
+  .header-image {
+    width: 134%;
+    height: auto;
+    max-width: 300px;
+    object-fit: cover;
+    object-position: center; /* Ajusta el enfoque */
+  }
+
+  .reserve-link {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+  }
+}
+
+/* Estilo de enlace de reserva */
+.reserve-link {
+  position: relative;
+  display: inline-block;
+  margin-top: 30px;
+  padding: 12px 24px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: black;
+  background-color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.reserve-link:hover {
+  background-color: #89dc00;
+  transform: translateY(-3px);
+}
