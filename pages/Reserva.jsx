@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'
+import Swal from 'sweetalert2'; // Importa SweetAlert2
+import { Link } from 'react-router-dom';
 import '../pages/Reserva.css';
+
 function ReservaForm() {
   const [nombre, setNombre] = useState('');
   const [fecha, setFecha] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFinal, setHoraFinal] = useState('');
   const [salon, setSalon] = useState('');
-  const [area, setArea] = useState(''); // Nuevo campo de área
-  const [motivo, setMotivo] = useState(''); // Nuevo campo de motivo
+  const [area, setArea] = useState('');
+  const [motivo, setMotivo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
 
-  // Validación para asegurarse de que la hora de inicio es antes que la hora final
   const validarFormulario = () => {
     if (horaInicio >= horaFinal) {
       setError('La hora de inicio debe ser antes de la hora final.');
@@ -25,31 +26,54 @@ function ReservaForm() {
   const handleSubmit = (event) => {
     event.preventDefault();
 
-    // Validar formulario
     if (!validarFormulario()) {
       return;
     }
 
-    const reservaData = { nombre,fecha, horaInicio, horaFinal, salon, area, motivo };
+    const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
 
-    // Enviar la reserva al backend
-    fetch('https://reservas-zer3.onrender.com/reservar', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(reservaData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        setMensaje(data.mensaje);
-        setError('');
-      })
-      .catch((error) => {
-        console.error('Error al hacer la reserva:', error);
-        setMensaje('');
-        setError('Hubo un error al realizar la reserva. Intente de nuevo más tarde.');
-      });
+    // Muestra el cuadro de confirmación
+    Swal.fire({
+      title: 'Confirma tu reserva',
+      html: `
+        <p><strong>Nombre:</strong> ${nombre}</p>
+        <p><strong>Fecha:</strong> ${fecha}</p>
+        <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
+        <p><strong>Hora Final:</strong> ${horaFinal}</p>
+        <p><strong>Salón:</strong> ${salon}</p>
+        <p><strong>Área:</strong> ${area}</p>
+        <p><strong>Motivo:</strong> ${motivo}</p>
+      `,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Confirmar Reserva',
+      cancelButtonText: 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Si el usuario confirma, envía la solicitud al servidor
+        fetch('https://reservas-zer3.onrender.com/reservar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(reservaData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            setMensaje(data.mensaje);
+            setError('');
+            Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success');
+          })
+          .catch((error) => {
+            console.error('Error al hacer la reserva:', error);
+            setMensaje('');
+            setError('Hubo un error al realizar la reserva. Intente de nuevo más tarde.');
+            Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
+          });
+      }
+    });
   };
 
   return (
@@ -71,7 +95,7 @@ function ReservaForm() {
           </select>
         </div>
         <div>
-          <label htmlFor="nombre">Nombre y Apellido.:</label>
+          <label htmlFor="nombre">Nombre y Apellido:</label>
           <input
             type="text"
             id="nombre"
