@@ -25,13 +25,13 @@ function ReservaForm() {
 
   const handleSubmit = (event) => {
     event.preventDefault();
-
+  
     if (!validarFormulario()) {
       return;
     }
-
+  
     const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
-
+  
     // Muestra el cuadro de confirmación
     Swal.fire({
       title: 'Confirma tu reserva',
@@ -64,7 +64,11 @@ function ReservaForm() {
           .then((data) => {
             setMensaje(data.mensaje);
             setError('');
-            Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success');
+            Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
+              .then(() => {
+                // Redirige a la página deseada después de mostrar el mensaje de éxito
+                window.location.href = 'https://www.merkahorro.com/';
+              });
           })
           .catch((error) => {
             console.error('Error al hacer la reserva:', error);
@@ -75,6 +79,7 @@ function ReservaForm() {
       }
     });
   };
+  
 
   return (
     <div className='kevin'>
@@ -115,7 +120,7 @@ function ReservaForm() {
             <option value="">Seleccione el área</option>
             <option value="Gestión humana">Gestión humana</option>
             <option value="Operaciones">Operaciones</option>
-            <option value="Contabilidad">Contabilidad</option>
+            <option value="Contabilidad">Administrativa y financiera</option>
           </select>
         </div>
         <div>
