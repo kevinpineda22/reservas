@@ -22,7 +22,6 @@ function ReservaForm() {
     setError('');
     return true;
   };
-
   const handleSubmit = (event) => {
     event.preventDefault();
   
@@ -32,53 +31,70 @@ function ReservaForm() {
   
     const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
   
-    // Muestra el cuadro de confirmación
-    Swal.fire({
-      title: 'Confirma tu reserva',
-      html: `
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Fecha:</strong> ${fecha}</p>
-        <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
-        <p><strong>Hora Final:</strong> ${horaFinal}</p>
-        <p><strong>Salón:</strong> ${salon}</p>
-        <p><strong>Área:</strong> ${area}</p>
-        <p><strong>Motivo:</strong> ${motivo}</p>
-      `,
-      icon: 'info',
-      showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Confirmar Reserva',
-      cancelButtonText: 'Cancelar',
-    }).then((result) => {
-      if (result.isConfirmed) {
-        // Si el usuario confirma, envía la solicitud al servidor
-        fetch('https://reservas-zer3.onrender.com/reservar', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(reservaData),
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            setMensaje(data.mensaje);
-            setError('');
-            Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
-              .then(() => {
-                // Redirige a la página deseada después de mostrar el mensaje de éxito
-                window.location.href = 'https://www.merkahorro.com/';
-              });
-          })
-          .catch((error) => {
-            console.error('Error al hacer la reserva:', error);
-            setMensaje('');
-            setError('Hubo un error al realizar la reserva. Intente de nuevo más tarde.');
-            Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
+    // Hacer una solicitud para verificar si el horario está disponible
+    fetch('https://reservas-zer3.onrender.com/reservar', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(reservaData),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.mensaje === 'Ya existe una reserva en este horario. Intenta con otro horario.') {
+          // Si ya existe una reserva en ese horario, muestra el error
+          Swal.fire('Error', data.mensaje, 'error');
+        } else {
+          // Si no hay conflictos, muestra la confirmación de la reserva
+          Swal.fire({
+            title: 'Confirma tu reserva',
+            html: `
+              <p><strong>Nombre:</strong> ${nombre}</p>
+              <p><strong>Fecha:</strong> ${fecha}</p>
+              <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
+              <p><strong>Hora Final:</strong> ${horaFinal}</p>
+              <p><strong>Salón:</strong> ${salon}</p>
+              <p><strong>Área:</strong> ${area}</p>
+              <p><strong>Motivo:</strong> ${motivo}</p>
+            `,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Confirmar Reserva',
+            cancelButtonText: 'Cancelar',
+          }).then((result) => {
+            if (result.isConfirmed) {
+              // Si el usuario confirma la reserva, la registramos
+              fetch('https://reservas-zer3.onrender.com/reservar', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(reservaData),
+              })
+                .then((response) => response.json())
+                .then((data) => {
+                  Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
+                    .then(() => {
+                      // Redirige a la página deseada después de la confirmación
+                      window.location.href = 'https://www.merkahorro.com/';
+                    });
+                })
+                .catch((error) => {
+                  console.error('Error al hacer la reserva:', error);
+                  Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
+                });
+            }
           });
-      }
-    });
+        }
+      })
+      .catch((error) => {
+        console.error('Error al verificar la disponibilidad:', error);
+        Swal.fire('Error', 'Hubo un problema al verificar la disponibilidad. Intente de nuevo más tarde.', 'error');
+      });
   };
+  
   
 
   return (
@@ -118,9 +134,13 @@ function ReservaForm() {
             required
           >
             <option value="">Seleccione el área</option>
+            <option value="Gestión humana">Gerencia</option>
             <option value="Gestión humana">Gestión humana</option>
             <option value="Operaciones">Operaciones</option>
             <option value="Contabilidad">Administrativa y financiera</option>
+            <option value="Gestión humana">Tesorería</option>
+            <option value="Gestión humana">Compras</option>
+            <option value="Gestión humana">Comercial</option>
           </select>
         </div>
         <div>
