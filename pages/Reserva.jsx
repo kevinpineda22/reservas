@@ -15,6 +15,7 @@ function ReservaForm() {
   const [error, setError] = useState('');
   const [reservas, setReservas] = useState([]); // Estado para almacenar las reservas
 
+  // Función para validar que la hora de inicio sea antes que la hora final
   const validarFormulario = () => {
     if (horaInicio >= horaFinal) {
       setError('La hora de inicio debe ser antes de la hora final.');
@@ -24,6 +25,7 @@ function ReservaForm() {
     return true;
   };
 
+  // Función para manejar el envío del formulario de reserva
   const handleSubmit = (event) => {
     event.preventDefault();
   
@@ -33,7 +35,7 @@ function ReservaForm() {
   
     const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
   
-    
+    // Enviar la reserva al servidor
     fetch('https://reservas-zer3.onrender.com/reservar', {
       method: 'POST',
       headers: {
@@ -49,10 +51,6 @@ function ReservaForm() {
         } else {
           // Reserva exitosa, muestra mensaje de confirmación
           Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
-            // .then(() => {
-            //   // Redirige a la página deseada después de la confirmación
-            //   window.location.href = 'https://www.merkahorro.co/';
-            // });
         }
       })
       .catch((error) => {
@@ -60,27 +58,27 @@ function ReservaForm() {
         Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
       });
       
-      fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}`)
-  .then((response) => {
-    if (!response.ok) {
-      throw new Error('Error en la solicitud: ' + response.statusText);
-    }
-    return response.json();
-  })
-  .then((data) => {
-    if (data.mensaje) {
-      // Si hay un mensaje de error, muestra el error
-      Swal.fire('Error', data.mensaje, 'error');
-    } else {
-      // Si no hay mensaje de error, muestra las reservas
-      setReservas(data.reservas);
-    }
-  })
-  .catch((error) => {
-    console.error('Error al consultar reservas:', error);
-    Swal.fire('Error', 'No se pudieron cargar las reservas. Intente más tarde.', 'error');
-  });
-
+    // Consulta las reservas del salón seleccionado
+    fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('Error en la solicitud: ' + response.statusText);
+        }
+        return response.json();
+      })
+      .then((data) => {
+        if (data.mensaje) {
+          // Si hay un mensaje de error, muestra el error
+          Swal.fire('Error', data.mensaje, 'error');
+        } else {
+          // Si no hay mensaje de error, muestra las reservas
+          setReservas(data.reservas);
+        }
+      })
+      .catch((error) => {
+        console.error('Error al consultar reservas:', error);
+        Swal.fire('Error', 'No se pudieron cargar las reservas. Intente más tarde.', 'error');
+      });
   };
 
   // Función para consultar las reservas del salón seleccionado
@@ -89,8 +87,6 @@ function ReservaForm() {
       Swal.fire('Error', 'Por favor selecciona un salón para consultar las reservas.', 'warning');
       return;
     }
-  
-    
   };
 
   return (
@@ -185,9 +181,14 @@ function ReservaForm() {
         <div>
           <h3>Reservas para {salon}</h3>
           <ul>
+            {/* Mostrar las reservas en una lista organizada */}
             {reservas.map((reserva, index) => (
               <li key={index}>
-                {reserva.nombre} - {reserva.fecha} {reserva.horaInicio} - {reserva.horaFinal}
+                <strong>Nombre:</strong> {reserva.nombre} <br />
+                <strong>Área:</strong> {reserva.area} <br />
+                <strong>Fecha:</strong> {reserva.fecha} <br />
+                <strong>Hora Inicio:</strong> {reserva.horaInicio} <br />
+                <strong>Hora Final:</strong> {reserva.horaFinal}
               </li>
             ))}
           </ul>
