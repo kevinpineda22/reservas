@@ -13,6 +13,7 @@ function ReservaForm() {
   const [motivo, setMotivo] = useState('');
   const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
+  const [reservas, setReservas] = useState([]); // Estado para almacenar las reservas
 
   const validarFormulario = () => {
     if (horaInicio >= horaFinal) {
@@ -22,6 +23,7 @@ function ReservaForm() {
     setError('');
     return true;
   };
+
   const handleSubmit = (event) => {
     event.preventDefault();
   
@@ -31,7 +33,7 @@ function ReservaForm() {
   
     const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
   
-    // Hacer una solicitud para verificar si el horario está disponible
+    
     fetch('https://reservas-zer3.onrender.com/reservar', {
       method: 'POST',
       headers: {
@@ -45,57 +47,51 @@ function ReservaForm() {
           // Si ya existe una reserva en ese horario, muestra el error
           Swal.fire('Error', data.mensaje, 'error');
         } else {
-          // Si no hay conflictos, muestra la confirmación de la reserva
-          Swal.fire({
-            title: 'Confirma tu reserva',
-            html: `
-              <p><strong>Nombre:</strong> ${nombre}</p>
-              <p><strong>Fecha:</strong> ${fecha}</p>
-              <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
-              <p><strong>Hora Final:</strong> ${horaFinal}</p>
-              <p><strong>Salón:</strong> ${salon}</p>
-              <p><strong>Área:</strong> ${area}</p>
-              <p><strong>Motivo:</strong> ${motivo}</p>
-            `,
-            icon: 'info',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Confirmar Reserva',
-            cancelButtonText: 'Cancelar',
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Si el usuario confirma la reserva, la registramos
-              fetch('https://reservas-zer3.onrender.com/reservar', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reservaData),
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
-                    .then(() => {
-                      // Redirige a la página deseada después de la confirmación
-                      window.location.href = 'https://www.merkahorro.com/';
-                    });
-                })
-                .catch((error) => {
-                  console.error('Error al hacer la reserva:', error);
-                  Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
-                });
-            }
-          });
+          // Reserva exitosa, muestra mensaje de confirmación
+          Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
+            // .then(() => {
+            //   // Redirige a la página deseada después de la confirmación
+            //   window.location.href = 'https://www.merkahorro.co/';
+            // });
         }
       })
       .catch((error) => {
-        console.error('Error al verificar la disponibilidad:', error);
-        Swal.fire('Error', 'Hubo un problema al verificar la disponibilidad. Intente de nuevo más tarde.', 'error');
+        console.error('Error al hacer la reserva:', error);
+        Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
       });
+      
+      fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}`)
+  .then((response) => {
+    if (!response.ok) {
+      throw new Error('Error en la solicitud: ' + response.statusText);
+    }
+    return response.json();
+  })
+  .then((data) => {
+    if (data.mensaje) {
+      // Si hay un mensaje de error, muestra el error
+      Swal.fire('Error', data.mensaje, 'error');
+    } else {
+      // Si no hay mensaje de error, muestra las reservas
+      setReservas(data.reservas);
+    }
+  })
+  .catch((error) => {
+    console.error('Error al consultar reservas:', error);
+    Swal.fire('Error', 'No se pudieron cargar las reservas. Intente más tarde.', 'error');
+  });
+
   };
+
+  // Función para consultar las reservas del salón seleccionado
+  const handleConsultarReservas = () => {
+    if (!salon) {
+      Swal.fire('Error', 'Por favor selecciona un salón para consultar las reservas.', 'warning');
+      return;
+    }
   
-  
+    
+  };
 
   return (
     <div className='kevin'>
@@ -134,13 +130,11 @@ function ReservaForm() {
             required
           >
             <option value="">Seleccione el área</option>
-            <option value="Gestión humana">Gerencia</option>
             <option value="Gestión humana">Gestión humana</option>
             <option value="Operaciones">Operaciones</option>
-            <option value="Contabilidad">Administrativa y financiera</option>
-            <option value="Gestión humana">Tesorería</option>
-            <option value="Gestión humana">Compras</option>
-            <option value="Gestión humana">Comercial</option>
+            <option value="Contabilidad">Contabilidad</option>
+            <option value="Comercial">Comercial</option>
+            {/* Agregar más áreas si es necesario */}
           </select>
         </div>
         <div>
@@ -184,6 +178,21 @@ function ReservaForm() {
         </div>
         <button type="submit">Reservar</button>
       </form>
+
+      <button onClick={handleConsultarReservas}>Consultar Reservas</button>
+
+      {reservas.length > 0 && (
+        <div>
+          <h3>Reservas para {salon}</h3>
+          <ul>
+            {reservas.map((reserva, index) => (
+              <li key={index}>
+                {reserva.nombre} - {reserva.fecha} {reserva.horaInicio} - {reserva.horaFinal}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {mensaje && <p>{mensaje}</p>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
