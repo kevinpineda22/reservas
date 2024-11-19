@@ -78,24 +78,25 @@ function ReservaForm() {
       Swal.fire('Error', 'Por favor selecciona un salón para consultar las reservas.', 'warning');
       return;
     }
-
-    fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}&fecha=${fechaSeleccionada}`)
+    fetch(`https://reservas-zer3.onrender.com/reservas?fecha=${fechaSeleccionada}&salon=${salon}&horaInicio=${horaInicio}&horaFinal=${horaFinal}`, {
+      method: 'GET',
+    })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('Error en la solicitud: ' + response.statusText);
+          throw new Error('Error al obtener las reservas');
         }
         return response.json();
       })
       .then((data) => {
-        if (data.reservas) {
-          setReservas(data.reservas);
-          generarHorariosDisponibles(data.reservas);
+        console.log('Datos de reservas disponibles:', data);
+        if (data.reservasDisponibles) {
+          setReservasDisponibles(data.reservasDisponibles); // Actualiza la UI con las reservas
         } else {
-          Swal.fire('Error', data.mensaje, 'error');
+          Swal.fire('Error', 'No se encontraron reservas para esta fecha y salón.', 'error');
         }
       })
       .catch((error) => {
-        console.error('Error al consultar reservas:', error);
+        console.error('Error:', error);
         Swal.fire('Error', 'No se pudieron cargar las reservas. Intente más tarde.', 'error');
       });
   };
