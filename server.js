@@ -66,41 +66,30 @@ app.post('/reservar', async (req, res) => {
   }
 });
 
-app.get('/reservas', async (req, res) => {
-  const { salon } = req.query;
+// Endpoint para consultar horarios reservados
+app.get('/horarios-reservados', (req, res) => {
+  const { salon, fecha } = req.query;
 
-  if (!salon) {
-    return res.status(400).json({ mensaje: 'El parámetro "salon" es obligatorio.' });
+  if (!salon || !fecha) {
+    return res.status(400).json({ error: 'Por favor, proporciona el salón y la fecha.' });
   }
 
-  const tableName =
-    salon.toLowerCase() === "sala de juntas"
-      ? "sala_juntas_reservas"
-      : salon.toLowerCase() === "sala de reserva"
-      ? "sala_reserva_reservas"
-      : "auditorio_reservas";
+  // Consulta para obtener las reservas del salón en una fecha específica
+  const query = `
+    SELECT horaInicio, horaFinal, estado
+    FROM reservas
+    WHERE salon = ? AND fecha = ?;
+  `;
 
-  try {
-    const query = `
-      SELECT usuario_nombre, area, motivo, fecha, hora_inicio, hora_fin, estado
-      FROM ${tableName}
-      ORDER BY fecha, hora_inicio;
-    `;
-
-    const result = await pool.query(query);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ mensaje: 'No se encontraron reservas para el salón especificado.' });
+  db.query(query, [salon, fecha], (err, results) => {
+    if (err) {
+      console.error('Error al consultar la base de datos:', err);
+      return res.status(500).json({ error: 'Error interno del servidor.' });
     }
 
-    res.json({ reservas: result.rows });
-  } catch (error) {
-    console.error('Error al obtener las reservas:', error.message);
-    res.status(500).json({ mensaje: 'Hubo un error al obtener las reservas.', error: error.message });
-  }
+    res.json({ horarios: results });
+  });
 });
-
-
 app.listen(port, () => {
   console.log('Servidor corriendo en el puerto', port);
 });

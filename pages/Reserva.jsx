@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import Swal from 'sweetalert2'; // Importa SweetAlert2
-import { Link } from 'react-router-dom';
+import DatePicker from 'react-datepicker'; // Importa react-datepicker
+import 'react-datepicker/dist/react-datepicker.css'; // Importa estilos de react-datepicker
 import '../pages/Reserva.css';
 
 function ReservaForm() {
   const [nombre, setNombre] = useState('');
-  const [fecha, setFecha] = useState('');
+  const [fecha, setFecha] = useState(null);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFinal, setHoraFinal] = useState('');
   const [salon, setSalon] = useState('');
   const [area, setArea] = useState('');
   const [motivo, setMotivo] = useState('');
-  const [mensaje, setMensaje] = useState('');
   const [error, setError] = useState('');
-  const [reservas, setReservas] = useState([]); // Estado para almacenar las reservas
+  const [reservas, setReservas] = useState([]);
+  const [horariosDisponibles, setHorariosDisponibles] = useState([]);
 
-  // Función para validar que la hora de inicio sea antes que la hora final
+  // Validar el formulario antes del envío
   const validarFormulario = () => {
+    if (!nombre || !fecha || !horaInicio || !horaFinal || !salon || !area || !motivo) {
+      setError('Por favor, completa todos los campos.');
+      return false;
+    }
     if (horaInicio >= horaFinal) {
       setError('La hora de inicio debe ser antes de la hora final.');
       return false;
@@ -25,17 +30,25 @@ function ReservaForm() {
     return true;
   };
 
-  // Función para manejar el envío del formulario de reserva
+  // Enviar la reserva al servidor
   const handleSubmit = (event) => {
     event.preventDefault();
-  
+
     if (!validarFormulario()) {
+      Swal.fire('Error', error, 'error');
       return;
     }
-  
-    const reservaData = { nombre, fecha, horaInicio, horaFinal, salon, area, motivo };
-  
-    // Enviar la reserva al servidor
+
+    const reservaData = {
+      nombre,
+      fecha: fecha?.toISOString().split('T')[0], // Formatear fecha como YYYY-MM-DD
+      horaInicio,
+      horaFinal,
+      salon,
+      area,
+      motivo,
+    };
+
     fetch('https://reservas-zer3.onrender.com/reservar', {
       method: 'POST',
       headers: {
@@ -45,21 +58,28 @@ function ReservaForm() {
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.mensaje === 'Ya existe una reserva en este horario. Intenta con otro horario.') {
-          // Si ya existe una reserva en ese horario, muestra el error
+        if (data.mensaje) {
           Swal.fire('Error', data.mensaje, 'error');
         } else {
-          // Reserva exitosa, muestra mensaje de confirmación
-          Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success')
+          Swal.fire('¡Reserva realizada!', 'Tu reserva ha sido registrada con éxito.', 'success');
+          setReservas([...reservas, reservaData]); // Actualizar lista de reservas
+          limpiarFormulario();
         }
       })
       .catch((error) => {
         console.error('Error al hacer la reserva:', error);
         Swal.fire('Error', 'No se pudo realizar la reserva. Intente más tarde.', 'error');
       });
-      
-    // Consulta las reservas del salón seleccionado
-    fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}`)
+  };
+
+  // Consultar reservas para un salón y fecha específicos
+  const consultarReservasPorFecha = (fechaSeleccionada) => {
+    if (!salon) {
+      Swal.fire('Error', 'Por favor selecciona un salón para consultar las reservas.', 'warning');
+      return;
+    }
+
+    fetch(`https://reservas-zer3.onrender.com/reservas?salon=${salon}&fecha=${fechaSeleccionada}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error('Error en la solicitud: ' + response.statusText);
@@ -67,12 +87,11 @@ function ReservaForm() {
         return response.json();
       })
       .then((data) => {
-        if (data.mensaje) {
-          // Si hay un mensaje de error, muestra el error
-          Swal.fire('Error', data.mensaje, 'error');
-        } else {
-          // Si no hay mensaje de error, muestra las reservas
+        if (data.reservas) {
           setReservas(data.reservas);
+          generarHorariosDisponibles(data.reservas);
+        } else {
+          Swal.fire('Error', data.mensaje, 'error');
         }
       })
       .catch((error) => {
@@ -81,16 +100,32 @@ function ReservaForm() {
       });
   };
 
-  // Función para consultar las reservas del salón seleccionado
-  const handleConsultarReservas = () => {
-    if (!salon) {
-      Swal.fire('Error', 'Por favor selecciona un salón para consultar las reservas.', 'warning');
-      return;
+  // Generar horarios disponibles basado en las reservas existentes
+  const generarHorariosDisponibles = (reservas) => {
+    const horarios = [];
+    for (let i = 6; i <= 19; i++) {
+      const hora = `${i.toString().padStart(2, '0')}:00`;
+      const ocupado = reservas.some(
+        (reserva) => reserva.horaInicio <= hora && reserva.horaFinal > hora
+      );
+      horarios.push({ hora, disponible: !ocupado });
     }
+    setHorariosDisponibles(horarios);
+  };
+
+  // Limpiar el formulario después de una reserva exitosa
+  const limpiarFormulario = () => {
+    setNombre('');
+    setFecha(null);
+    setHoraInicio('');
+    setHoraFinal('');
+    setSalon('');
+    setArea('');
+    setMotivo('');
   };
 
   return (
-    <div className='kevin'>
+    <div className="kevin">
       <h2>Reserva tu espacio</h2>
       <form onSubmit={handleSubmit}>
         <div>
@@ -130,7 +165,6 @@ function ReservaForm() {
             <option value="Operaciones">Operaciones</option>
             <option value="Contabilidad">Contabilidad</option>
             <option value="Comercial">Comercial</option>
-            {/* Agregar más áreas si es necesario */}
           </select>
         </div>
         <div>
@@ -144,11 +178,14 @@ function ReservaForm() {
         </div>
         <div>
           <label htmlFor="fecha">Fecha:</label>
-          <input
-            type="date"
+          <DatePicker
             id="fecha"
-            value={fecha}
-            onChange={(e) => setFecha(e.target.value)}
+            selected={fecha}
+            onChange={(date) => {
+              setFecha(date);
+              consultarReservasPorFecha(date.toISOString().split('T')[0]);
+            }}
+            dateFormat="yyyy-MM-dd"
             required
           />
         </div>
@@ -175,28 +212,18 @@ function ReservaForm() {
         <button type="submit">Reservar</button>
       </form>
 
-      <button onClick={handleConsultarReservas}>Consultar Reservas</button>
-
-      {reservas.length > 0 && (
+      {horariosDisponibles.length > 0 && (
         <div>
-          <h3>Reservas para {salon}</h3>
+          <h3>Horarios disponibles para {salon} el {fecha?.toLocaleDateString()}</h3>
           <ul>
-            {/* Mostrar las reservas en una lista organizada */}
-            {reservas.map((reserva, index) => (
-              <li key={index}>
-                <strong>Nombre:</strong> {reserva.nombre} <br />
-                <strong>Área:</strong> {reserva.area} <br />
-                <strong>Fecha:</strong> {reserva.fecha} <br />
-                <strong>Hora Inicio:</strong> {reserva.horaInicio} <br />
-                <strong>Hora Final:</strong> {reserva.horaFinal}
+            {horariosDisponibles.map((horario, index) => (
+              <li key={index} style={{ color: horario.disponible ? 'green' : 'red' }}>
+                {horario.hora} - {horario.disponible ? 'Disponible' : 'Reservado'}
               </li>
             ))}
           </ul>
         </div>
       )}
-
-      {mensaje && <p>{mensaje}</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 }
