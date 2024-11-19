@@ -80,7 +80,7 @@ app.get('/reservas', async (req, res) => {
       ? "sala_juntas_reservas"
       : salon.toLowerCase() === "sala de reserva"
       ? "sala_reserva_reservas"
-      : "auditorio_reservas"; // Si no es ninguno de los anteriores, por defecto es "auditorio_reservas"
+      : "auditorio_reservas"; 
 
   // Consulta para obtener las reservas del salón en una fecha específica
   const query = `
@@ -90,16 +90,19 @@ app.get('/reservas', async (req, res) => {
   `;
 
   try {
-    // Usamos pool.query() para realizar la consulta
     const result = await pool.query(query, [salon, fecha]);
-    
-    // Retornamos los resultados de las reservas
+
+    // Imprimir datos de las reservas para verificar en consola
+    console.log('Datos de reservas disponibles:', JSON.stringify(result.rows, null, 2));
+
+    // Retornar los datos en formato JSON
     res.json({ horarios: result.rows });
   } catch (err) {
     console.error('Error al consultar la base de datos:', err);
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
+
 
 app.listen(port, () => {
   console.log('Servidor corriendo en el puerto', port);
