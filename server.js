@@ -67,29 +67,40 @@ app.post('/reservar', async (req, res) => {
 });
 
 // Endpoint para consultar horarios reservados
-app.get('/reservas', (req, res) => {
+app.get('/reservas', async (req, res) => {
   const { salon, fecha } = req.query;
 
   if (!salon || !fecha) {
     return res.status(400).json({ error: 'Por favor, proporciona el salón y la fecha.' });
   }
 
+  // Determina dinámicamente el nombre de la tabla según el salón
+  const tableName =
+    salon.toLowerCase() === "sala de juntas"
+      ? "sala_juntas_reservas"
+      : salon.toLowerCase() === "sala de reserva"
+      ? "sala_reserva_reservas"
+      : "auditorio_reservas"; // Si no es ninguno de los anteriores, por defecto es "auditorio_reservas"
+
   // Consulta para obtener las reservas del salón en una fecha específica
   const query = `
-    SELECT horaInicio, horaFinal, estado
-    FROM reservas
-    WHERE salon = ? AND fecha = ?;
+    SELECT hora_inicio, hora_fin, estado
+    FROM ${tableName}
+    WHERE salon = $1 AND fecha = $2;
   `;
 
-  db.query(query, [salon, fecha], (err, results) => {
-    if (err) {
-      console.error('Error al consultar la base de datos:', err);
-      return res.status(500).json({ error: 'Error interno del servidor.' });
-    }
-
-    res.json({ horarios: results });
-  });
+  try {
+    // Usamos pool.query() para realizar la consulta
+    const result = await pool.query(query, [salon, fecha]);
+    
+    // Retornamos los resultados de las reservas
+    res.json({ horarios: result.rows });
+  } catch (err) {
+    console.error('Error al consultar la base de datos:', err);
+    res.status(500).json({ error: 'Error interno del servidor.' });
+  }
 });
+
 app.listen(port, () => {
   console.log('Servidor corriendo en el puerto', port);
 });
