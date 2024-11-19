@@ -67,7 +67,7 @@ app.post('/reservar', async (req, res) => {
 });
 
 // Endpoint para consultar horarios reservados
-app.get('/horarios-reservados', (req, res) => {
+app.get('/reservas', (req, res) => {
   const { salon, fecha } = req.query;
 
   if (!salon || !fecha) {
