@@ -156,17 +156,18 @@ function ReservaForm() {
 
 
    // Generar horarios disponibles basado en las reservas existentes
-   const generarHorariosDisponibles = (reservas) => {
+  const generarHorariosDisponibles = (reservas) => {
     const horarios = [];
     for (let i = 6; i <= 19; i++) {
       const hora = `${i.toString().padStart(2, '0')}:00`;
       const ocupado = reservas.some(
-        (reserva) => reserva.horaInicio <= hora && reserva.horaFinal > hora
+        (reserva) => reserva.hora_inicio <= hora && reserva.hora_fin > hora // Ajusta según tu estructura
       );
       horarios.push({ hora, disponible: !ocupado });
     }
-    setHorariosDisponibles(horarios);
+    setHorariosDisponibles(horarios); // Guardar la lista completa con estados
   };
+  
 
   // Limpiar el formulario después de una reserva exitosa
   const limpiarFormulario = () => {
@@ -248,39 +249,38 @@ function ReservaForm() {
           />
         </div>
         <div>
-        <label htmlFor="horaInicio">Hora de Inicio:</label>
-        <select
-          id="horaInicio"
-          value={horaInicio}
-          onFocus={mostrarHoras}  // Al hacer clic, mostramos las horas
-          onChange={(e) => setHoraInicio(e.target.value)}
-          required
-        >
-          <option value="">Seleccione una hora</option>
-          {horasDisponibles.map((hora) => (
-            <option key={hora} value={hora}>
-              {hora}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="horaFinal">Hora Final:</label>
-        <select
-          id="horaFinal"
-          value={horaFinal}
-          onFocus={mostrarHoras}  // Al hacer clic, mostramos las horas
-          onChange={(e) => setHoraFinal(e.target.value)}
-          required
-        >
-          <option value="">Seleccione una hora</option>
-          {horasDisponibles.map((hora) => (
-            <option key={hora} value={hora}>
-              {hora}
-            </option>
-          ))}
-        </select>
-      </div>
+  <label htmlFor="horaInicio">Hora de Inicio:</label>
+  <select
+    id="horaInicio"
+    value={horaInicio}
+    onChange={(e) => setHoraInicio(e.target.value)}
+    required
+  >
+    <option value="">Seleccione una hora</option>
+    {horariosDisponibles.map(({ hora, disponible }) => (
+      <option key={hora} value={hora} disabled={!disponible}>
+        {hora} {disponible ? '' : 'Reservado'}
+      </option>
+    ))}
+  </select>
+</div>
+<div>
+  <label htmlFor="horaFinal">Hora Final:</label>
+  <select
+    id="horaFinal"
+    value={horaFinal}
+    onChange={(e) => setHoraFinal(e.target.value)}
+    required
+  >
+    <option value="">Seleccione una hora</option>
+    {horariosDisponibles.map(({ hora, disponible }) => (
+      <option key={hora} value={hora} disabled={!disponible}>
+        {hora} {disponible ? '' : 'Reservado'}
+      </option>
+    ))}
+  </select>
+</div>
+
         <button type="submit">Reservar</button>
       </form>
       

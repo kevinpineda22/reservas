@@ -96,24 +96,10 @@ h2 {
       font-size: 1rem;
     }
   }
-  .tabla-basica {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
-  }
-  
-  .tabla-basica th, .tabla-basica td {
-    padding: 8px;
-    text-align: left;
-    border: 1px solid #ddd;
-  }
-  
-  .tabla-basica th {
-    background-color: #007BFF;
-    color: white;
-  }
-  
-  .tabla-basica tbody tr:hover {
-    background-color: #f1f1f1;
-  }
+
+select option[disabled] {
+  color: #fff; /* Texto blanco */
+  background-color: #f44336; /* Rojo */
+  font-weight: bold;
+}
   
