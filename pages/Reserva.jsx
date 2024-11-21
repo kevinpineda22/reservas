@@ -139,9 +139,9 @@ function ReservaForm() {
       })
       .then((data) => {
         console.log('Datos de reservas disponibles:', data);
-        if (data.reservasDisponibles) {
-          setReservas(data.reservasDisponibles); // Actualiza la lista de reservas
-          generarHorariosDisponibles(data.reservasDisponibles); // Genera horarios disponibles
+        if (data.horarios) {
+          setReservas(data.horarios); // Actualiza los horarios
+          generarHorariosDisponibles(data.horarios); // Genera horarios disponibles
         } else {
           Swal.fire('Error', 'No se encontraron reservas para esta fecha y salón.', 'error');
         }
