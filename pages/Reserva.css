@@ -1,5 +1,5 @@
 .kevin{
-  background-color: white;
+ background-color: white;
 }
 h2 {
   
@@ -11,15 +11,15 @@ h2 {
   
   /* Contenedor del formulario */
   form {
-    
+  
     max-width: 500px;
     margin: 0 auto;
-    background-color: white;
+    background-color: white; /* Fondo blanco sólido */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+   
   }
-  
   form div {
     
     margin-bottom: 15px;

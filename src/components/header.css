@@ -4,9 +4,7 @@ body {
   font-family: "Poppins", sans-serif; /* Fuente moderna y limpia */
   margin: 0;
   background: linear-gradient(90deg, #210d65, #0077b6);
-  padding: 0;
 }
-
 .header {
   padding: 40px 20px;
   text-align: center;
