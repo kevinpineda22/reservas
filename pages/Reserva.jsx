@@ -1,11 +1,11 @@
 import React, { useState,useMemo,    } from 'react';
 import Swal from 'sweetalert2'; // Importa SweetAlert2
-import DatePicker from 'react-datepicker'; // Importa react-datepicker
+import DatePicker,{registerLocale} from 'react-datepicker'; // Importa react-datepicker
 import 'react-datepicker/dist/react-datepicker.css'; // Importa estilos de react-datepicker
 import '../pages/Reserva.css';
-import {useTable} from 'react-table'; // tablas dinamicas
+import { es } from "date-fns/locale"; // Importa el idioma español de date-fns
  
-
+registerLocale("es", es); // Registra el idioma español
 
 
 function ReservaForm() {
@@ -30,7 +30,6 @@ function ReservaForm() {
     }
     setHorasDisponibles(horas);
   };
-
   // Validar el formulario antes del envío
   const validarFormulario = () => {
     if (!nombre || !fecha || !horaInicio || !horaFinal || !salon || !area || !motivo) {
@@ -73,8 +72,8 @@ function ReservaForm() {
           Swal.fire({
             title: 'Confirma tu reserva',
             html: `
-              <p><strong>Nombre:</strong> ${nombre}</p>
-              <p><strong>Fecha:</strong> ${fecha}</p>
+             <p style="color: blue;"><strong>Nombre:</strong> ${nombre}</p>
+              <p><strong>Fecha:</strong> ${fecha ? fecha.toISOString().split('T')[0] : 'No seleccionada'}</p> 
               <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
               <p><strong>Hora Final:</strong> ${horaFinal}</p>
               <p><strong>Salón:</strong> ${salon}</p>
@@ -220,10 +219,13 @@ function ReservaForm() {
             required
           >
             <option value="">Seleccione el área</option>
+            <option value="Gerencia">Gerencia</option>
             <option value="Gestión humana">Gestión humana</option>
             <option value="Operaciones">Operaciones</option>
             <option value="Contabilidad">Contabilidad</option>
             <option value="Comercial">Comercial</option>
+            <option value="Compras">Compras</option>
+            <option value="Tesorería">Tesorería</option>
           </select>
         </div>
         <div>
@@ -245,6 +247,8 @@ function ReservaForm() {
               consultarReservasPorFecha(date.toISOString().split('T')[0]);
             }}
             dateFormat="yyyy-MM-dd"
+           locale="es"
+           showTimeSelect={false} // Desactiva la selección de horas
             required
           />
         </div>
