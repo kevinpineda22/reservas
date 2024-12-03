@@ -53,7 +53,7 @@ app.post('/reservar', async (req, res) => {
 
     const insertQuery = `
       INSERT INTO ${tableName}
-      (usuario_nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
+      (nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
     `;
 
@@ -82,9 +82,9 @@ app.get('/reservas', async (req, res) => {
       ? "sala_reserva_reservas"
       : "auditorio_reservas"; 
 
-  // Consulta para obtener las reservas del salón en una fecha específica
+  // Consulta para obtener las reservas del salón en una fecha específica, incluyendo el nombre de la persona
   const query = `
-    SELECT hora_inicio, hora_fin, estado
+    SELECT hora_inicio, hora_fin, area, estado
     FROM ${tableName}
     WHERE salon = $1 AND fecha = $2;
   `;
@@ -102,6 +102,24 @@ app.get('/reservas', async (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor.' });
   }
 });
+
+// Endpoint para cancelar una reserva
+
+// app.delete('/cancelarReserva', (req, res) => {
+//   const { nombre } = req.query;  // Obtener el nombre desde la consulta
+
+//   // Buscar la reserva que coincide con el nombre
+//   const reserva = reservas.find((reserva) => reserva.nombre === nombre);
+
+//   if (!reserva) {
+//     return res.status(404).json({ mensaje: 'No se encontró una reserva con ese nombre.' });
+//   }
+
+//   // Eliminar la reserva
+//   reservas = reservas.filter((reserva) => reserva.nombre !== nombre);
+  
+//   return res.status(200).json({ mensaje: 'Reserva cancelada correctamente' });
+// });
 
 
 app.listen(port, () => {
