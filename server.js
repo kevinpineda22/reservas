@@ -84,7 +84,7 @@ app.get('/reservas', async (req, res) => {
 
   // Consulta para obtener las reservas del salón en una fecha específica, incluyendo el nombre de la persona
   const query = `
-    SELECT hora_inicio, hora_fin, area, estado
+    SELECT hora_inicio, hora_fin, estado 
     FROM ${tableName}
     WHERE salon = $1 AND fecha = $2;
   `;
