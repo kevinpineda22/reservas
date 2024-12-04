@@ -102,12 +102,21 @@ const [salonCancelar, setSalonCancelar] = useState('');
           },
           body: JSON.stringify(reservaData),
         })
-          .then((response) => response.json())
+          .then((response) => {
+            // Verificar si la respuesta es exitosa
+            
+            if (!response.ok) {
+              throw new Error("Hubo un problema con la reserva.");
+            }
+            return response.json();
+          })
           .then((data) => {
-            console.log("Respuesta del servidor:", data);  // Imprime la respuesta para depuración
+            // Log de la respuesta para depuración
+            console.log("Respuesta del servidor:", data);
   
-            if (data.mensaje === "Reserva almacenada exitosamente.") {
-              // Si la reserva se guarda correctamente, mostramos el mensaje de éxito
+            // Asegurarse de que el mensaje de éxito esté presente
+            if (data.mensaje === "Reserva almacenada exitosamente") {
+              // Si la reserva se almacena correctamente, mostrar el mensaje de éxito
               Swal.fire(
                 "¡Reserva realizada!",
                 "Tu reserva ha sido registrada con éxito.",
@@ -117,13 +126,18 @@ const [salonCancelar, setSalonCancelar] = useState('');
                 window.location.href = "https://www.merkahorro.com/";
               });
             } else {
-              // En caso de que el mensaje no sea lo esperado
-              Swal.fire("Error", data.mensaje || "Hubo un problema al guardar la reserva. Intenta más tarde.", "error");
+              // Si no se recibe el mensaje esperado, mostrar un mensaje de error
+              Swal.fire(
+                "Error",
+                data.mensaje || "Hubo un problema al guardar la reserva. Intenta más tarde.",
+                "error"
+              );
             }
           })
           .catch((error) => {
+            // Manejo de error en caso de problemas con la red o servidor
             console.error("Error al realizar la reserva:", error);
-            Swal.fire("Error", "No se pudo realizar la reserva. Intente más tarde.", "error");
+            Swal.fire("Error", error.message || "No se pudo realizar la reserva. Intente más tarde.", "error");
           });
       } else {
         // Si el usuario cancela, no hacemos nada
@@ -132,8 +146,6 @@ const [salonCancelar, setSalonCancelar] = useState('');
     });
   };
   
-  
-
   // Consultar reservas para un salón y fecha específicos
   const consultarReservasPorFecha = (fechaSeleccionada) => {
     if (!salon) {
