@@ -8,7 +8,7 @@ dotenv.config(); // Cargar las variables de entorno
 
 const port = process.env.PORT || 5200;
 const { Pool } = pkg
-let reservas = [];
+
 
 const app = express();
 app.use(cors());

@@ -104,6 +104,8 @@ const [salonCancelar, setSalonCancelar] = useState('');
         })
           .then((response) => response.json())
           .then((data) => {
+            console.log("Respuesta del servidor:", data);  // Imprime la respuesta para depuración
+  
             if (data.mensaje === "Reserva almacenada exitosamente.") {
               // Si la reserva se guarda correctamente, mostramos el mensaje de éxito
               Swal.fire(
@@ -115,6 +117,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
                 window.location.href = "https://www.merkahorro.com/";
               });
             } else {
+              // En caso de que el mensaje no sea lo esperado
               Swal.fire("Error", data.mensaje || "Hubo un problema al guardar la reserva. Intenta más tarde.", "error");
             }
           })
