@@ -7,7 +7,8 @@ import dotenv from 'dotenv';
 dotenv.config(); // Cargar las variables de entorno
 
 const port = process.env.PORT || 5200;
-const { Pool } = pkg;
+const { Pool } = pkg
+let reservas = [];
 
 const app = express();
 app.use(cors());
@@ -103,23 +104,52 @@ app.get('/reservas', async (req, res) => {
   }
 });
 
-// Endpoint para cancelar una reserva
+// Endpoint para cancelar una reserva// Endpoint para cancelar una reserva
+app.delete('/cancelarReserva', async (req, res) => {
+  const { nombre, area, salon } = req.query; // Obtener parámetros de la consulta
 
-// app.delete('/cancelarReserva', (req, res) => {
-//   const { nombre } = req.query;  // Obtener el nombre desde la consulta
+  if (!nombre || !area || !salon) {
+    return res.status(400).json({ mensaje: "Debe proporcionar el nombre, área y salón." });
+  }
 
-//   // Buscar la reserva que coincide con el nombre
-//   const reserva = reservas.find((reserva) => reserva.nombre === nombre);
+  // Determinar la tabla según el área
+  const tableName =
+    salon.toLowerCase() === "sala de juntas"
+      ? "sala_juntas_reservas"
+      : salon.toLowerCase() === "sala de reserva"
+      ? "sala_reserva_reservas"
+      : "auditorio_reservas";
 
-//   if (!reserva) {
-//     return res.status(404).json({ mensaje: 'No se encontró una reserva con ese nombre.' });
-//   }
+  // Consulta para verificar si la reserva existe
+  const selectQuery = `
+    SELECT * 
+    FROM ${tableName}
+    WHERE nombre = $1 AND salon = $2 AND area = $3;
+  `;
 
-//   // Eliminar la reserva
-//   reservas = reservas.filter((reserva) => reserva.nombre !== nombre);
-  
-//   return res.status(200).json({ mensaje: 'Reserva cancelada correctamente' });
-// });
+  // Consulta para eliminar la reserva
+  const deleteQuery = `
+    DELETE FROM ${tableName}
+    WHERE nombre = $1 AND salon = $2 AND area = $3;
+  `;
+
+  try {
+    // Verificar si la reserva existe
+    const reservaExistente = await pool.query(selectQuery, [nombre, salon, area]);
+
+    if (reservaExistente.rows.length === 0) {
+      return res.status(404).json({ mensaje: "No se encontró una reserva con ese nombre, área y salón." });
+    }
+
+    // Eliminar la reserva
+    await pool.query(deleteQuery, [nombre, salon, area]);
+
+    return res.status(200).json({ mensaje: "Reserva cancelada correctamente." });
+  } catch (err) {
+    console.error('Error al cancelar la reserva:', err);
+    return res.status(500).json({ mensaje: "Error interno del servidor." });
+  }
+});
 
 
 app.listen(port, () => {

@@ -1,15 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
 
-body {
-  font-family: "Poppins", sans-serif; /* Fuente moderna y limpia */
-  margin: 0;
-  background: linear-gradient(90deg, #210d65, #0077b6);
-}
+
 .header {
   padding: 40px 20px;
   text-align: center;
   color: #fff;
-  
+  font-family: "Poppins", sans-serif; /* Fuente moderna y limpia */
+  margin: 0;
+  background: linear-gradient(90deg, #210d65, #0077b6);
+  background-size: cover; /* Asegura que el gradiente cubra el área */
+  min-height: 100vh; /* Hace que ocupe al menos toda la altura de la ventana */
 }
 
 .header h1 {

@@ -19,8 +19,7 @@ function ReservaForm() {
   const [error, setError] = useState("");
   const [reservas, setReservas] = useState([]);
   const [horariosDisponibles, setHorariosDisponibles] = useState([]);
-  const [nombreCancelar, setNombreCancelar] = useState("");
-  const [errorCancelar, setErrorCancelar] = useState("");
+  const [mostrarCancelar, setMostrarCancelar] = useState(false); // Estado para alternar formularios
 
   const mostrarHoras = () => {
     // Generar las horas de 6:00 AM a 5:00 PM
@@ -199,6 +198,36 @@ function ReservaForm() {
       });
   };
 
+  const handleCancelarSubmit = () => {
+    // Asegurarse de que los valores estén definidos
+    if (!nombre || !area || !salon) {
+      alert("Por favor, complete todos los campos antes de cancelar la reserva.");
+      return;
+    }
+  
+    // Construir la URL con los parámetros necesarios
+    const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombre)}&area=${encodeURIComponent(area)}&salon=${encodeURIComponent(salon)}`;
+  
+    fetch(url, {
+      method: "DELETE", // Método DELETE como define tu endpoint
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Error en la solicitud: ${response.status}`);
+        }
+        return response.json(); // Convertir la respuesta en JSON
+      })
+      .then((data) => {
+        alert(data.mensaje); // Mostrar el mensaje del servidor
+      })
+      .catch((error) => {
+        console.error("Error al cancelar la reserva:", error);
+        alert("Hubo un problema al cancelar la reserva. Intente nuevamente.");
+      });
+  };
+  
+
+
   // Generar horarios disponibles basado en las reservas existentes
   const generarHorariosDisponibles = (reservas) => {
     const horarios = [];
@@ -231,113 +260,186 @@ function ReservaForm() {
   };
 
   return (
-    <div className="kevin">
-      <h2>Reserva tu espacio</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="salon">Salón:</label>
-          <select
-            id="salon"
-            value={salon}
-            onChange={(e) => setSalon(e.target.value)}
-            required
-          >
-            <option value="">Seleccione el salón</option>
-            <option value="Auditorio Principal">Auditorio Principal</option>
-            <option value="Sala de Juntas">Sala de Juntas</option>
-            <option value="Sala de reserva">Sala de reserva</option>
-          </select>
+    <div>
+      {!mostrarCancelar && (
+        <div className="kevin">
+          <h2>Reserva tu espacio</h2>
+          <form onSubmit={handleSubmit}>
+            <div>
+              <label htmlFor="salon">Salón:</label>
+              <select
+                id="salon"
+                value={salon}
+                onChange={(e) => setSalon(e.target.value)}
+                required
+              >
+                <option value="">Seleccione el salón</option>
+                <option value="Auditorio Principal">Auditorio Principal</option>
+                <option value="Sala de Juntas">Sala de Juntas</option>
+                <option value="Sala de reserva">Sala de reserva</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="nombre">Nombre y Apellido:</label>
+              <input
+                type="text"
+                id="nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="area">Área:</label>
+              <select
+                id="area"
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                required
+              >
+                <option value="">Seleccione el área</option>
+                <option value="Gerencia">Gerencia</option>
+                <option value="Gestión humana">Gestión humana</option>
+                <option value="Operaciones">Operaciones</option>
+                <option value="Contabilidad">Contabilidad</option>
+                <option value="Comercial">Comercial</option>
+                <option value="Compras">Compras</option>
+                <option value="Tesorería">Tesorería</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="motivo">Motivo de la reserva:</label>
+              <textarea
+                id="motivo"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                required
+              ></textarea>
+            </div>
+            <div>
+              <label htmlFor="fecha">Fecha:</label>
+              <DatePicker
+                id="fecha"
+                selected={fecha}
+                onChange={(date) => {
+                  setFecha(date);
+                  consultarReservasPorFecha(date.toISOString().split("T")[0]); // Actualiza horarios
+                }}
+                dateFormat="yyyy-MM-dd"
+                locale="es"
+                showTimeSelect={false}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="horaInicio">Hora de Inicio:</label>
+              <select
+                id="horaInicio"
+                value={horaInicio}
+                onChange={(e) => setHoraInicio(e.target.value)}
+                required
+              >
+                <option value="">Seleccione una hora</option>
+                {horariosDisponibles.map(
+                  ({ hora, disponible, reservadoPor }) => (
+                    <option key={hora} value={hora} disabled={!disponible}>
+                      {hora}{" "}
+                      {disponible
+                        ? ""
+                        : `Reservado por: ${reservadoPor || "nul"}`}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="horaFinal">Hora Final:</label>
+              <select
+                id="horaFinal"
+                value={horaFinal}
+                onChange={(e) => setHoraFinal(e.target.value)}
+                required
+              >
+                <option value="">Seleccione una hora</option>
+                {horariosDisponibles.map(
+                  ({ hora, disponible, reservadoPor }) => (
+                    <option key={hora} value={hora} disabled={!disponible}>
+                      {hora}{" "}
+                      {disponible
+                        ? ""
+                        : `Reservado por: ${reservadoPor || "nul"}`}
+                    </option>
+                  )
+                )}
+              </select>
+            </div>
+            <button type="submit" className="btn-primary">
+              Reservar
+            </button>
+            <button
+              className="btn-primary"
+              onClick={() => setMostrarCancelar(!mostrarCancelar)}
+            >
+              {mostrarCancelar ? "Volver a Reservar" : "Cancelar Reserva"}
+            </button>
+          </form>
         </div>
-        <div>
-          <label htmlFor="nombre">Nombre y Apellido:</label>
-          <input
-            type="text"
-            id="nombre"
-            value={nombre}
-            onChange={(e) => setNombre(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="area">Área:</label>
-          <select
-            id="area"
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-            required
-          >
-            <option value="">Seleccione el área</option>
-            <option value="Gerencia">Gerencia</option>
-            <option value="Gestión humana">Gestión humana</option>
-            <option value="Operaciones">Operaciones</option>
-            <option value="Contabilidad">Contabilidad</option>
-            <option value="Comercial">Comercial</option>
-            <option value="Compras">Compras</option>
-            <option value="Tesorería">Tesorería</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="motivo">Motivo de la reserva:</label>
-          <textarea
-            id="motivo"
-            value={motivo}
-            onChange={(e) => setMotivo(e.target.value)}
-            required
-          ></textarea>
-        </div>
-        <div>
-          <label htmlFor="fecha">Fecha:</label>
-          <DatePicker
-            id="fecha"
-            selected={fecha}
-            onChange={(date) => {
-              setFecha(date);
-              consultarReservasPorFecha(date.toISOString().split("T")[0]);
-            }}
-            dateFormat="yyyy-MM-dd"
-            locale="es"
-            showTimeSelect={false} // Desactiva la selección de horas
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="horaInicio">Hora de Inicio:</label>
-          <select
-            id="horaInicio"
-            value={horaInicio}
-            onChange={(e) => setHoraInicio(e.target.value)}
-            required
-          >
-            <option value="">Seleccione una hora</option>
-            {horariosDisponibles.map(({ hora, disponible, reservadoPor }) => (
-              <option key={hora} value={hora} disabled={!disponible}>
-                {hora}{" "}
-                {disponible
-                  ? ""
-                  : `(Reservado por: ${reservadoPor || "nul"})`}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="horaFinal">Hora Final:</label>
-          <select
-            id="horaFinal"
-            value={horaFinal}
-            onChange={(e) => setHoraFinal(e.target.value)}
-            required
-          >
-            <option value="">Seleccione una hora</option>
-            {horariosDisponibles.map(({ hora, disponible, reservadoPor }) => (
-              <option key={hora} value={hora} disabled={!disponible}>
-                {hora} {disponible ? "" : `(Reservado por: ${reservadoPor})`}
-              </option>
-            ))}
-          </select>
-        </div>
+      )}
 
-        <button type="submit">Reservar</button>
-      </form>
+      {/* Formulario de Cancelar */}
+      {mostrarCancelar && (
+        <div className="cancelar">
+          <h2>Cancelar Reserva</h2>
+          <form onSubmit={handleCancelarSubmit}>
+            <div>
+              <label htmlFor="nombre">Nombre y Apellido:</label>
+              <input
+                type="text"
+                id="nombre"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="area">Área:</label>
+              <select
+                id="area"
+                value={area}
+                onChange={(e) => setArea(e.target.value)}
+                required
+              >
+                <option value="">Seleccione el área</option>
+                <option value="Gerencia">Gerencia</option>
+                <option value="Gestión humana">Gestión humana</option>
+                <option value="Operaciones">Operaciones</option>
+                <option value="Contabilidad">Contabilidad</option>
+                <option value="Comercial">Comercial</option>
+                <option value="Compras">Compras</option>
+                <option value="Tesorería">Tesorería</option>
+              </select>
+            </div>
+            <div>
+              <label htmlFor="salon">Salón:</label>
+              <select
+                id="salon"
+                value={salon}
+                onChange={(e) => setSalon(e.target.value)}
+                required
+              >
+                <option value="">Seleccione el salón</option>
+                <option value="Auditorio Principal">Auditorio Principal</option>
+                <option value="Sala de Juntas">Sala de Juntas</option>
+                <option value="Sala de reserva">Sala de reserva</option>
+              </select>
+            </div>
+            
+            <button className="btn-primary" type="submit">
+              Cancelar Reserva
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }
