@@ -106,50 +106,58 @@ app.get('/reservas', async (req, res) => {
 
 // Endpoint para cancelar una reserva// Endpoint para cancelar una reserva
 app.delete('/cancelarReserva', async (req, res) => {
-  const { nombre, area, salon } = req.query; // Obtener parámetros de la consulta
+  const { nombre, area, salon } = req.query;
 
+  // Validar que los parámetros existen y no están vacíos
   if (!nombre || !area || !salon) {
     return res.status(400).json({ mensaje: "Debe proporcionar el nombre, área y salón." });
   }
 
-  // Determinar la tabla según el área
-  const tableName =
-    salon.toLowerCase() === "sala de juntas"
-      ? "sala_juntas_reservas"
-      : salon.toLowerCase() === "sala de reserva"
-      ? "sala_reserva_reservas"
-      : "auditorio_reservas";
+  // Asegurarse de que los parámetros no estén vacíos
+  if (!nombre.trim() || !area.trim() || !salon.trim()) {
+    return res.status(400).json({ mensaje: "Los campos no pueden estar vacíos." });
+  }
 
-  // Consulta para verificar si la reserva existe
-  const selectQuery = `
-    SELECT * 
-    FROM ${tableName}
-    WHERE nombre = $1 AND salon = $2 AND area = $3;
-  `;
+  // Mapear los nombres de salones a tablas en la base de datos
+  const allowedSalons = {
+    "auditorio principal": "auditorio_reservas",
+    "sala de juntas": "sala_juntas_reservas",
+    "sala de reserva": "sala_reserva_reservas",
+  };
+
+  const tableName = allowedSalons[salon.toLowerCase()];
+
+  // Verificar si el salón es válido
+  if (!tableName) {
+    return res.status(400).json({ mensaje: "El salón proporcionado no es válido." });
+  }
 
   // Consulta para eliminar la reserva
   const deleteQuery = `
     DELETE FROM ${tableName}
-    WHERE nombre = $1 AND salon = $2 AND area = $3;
+    WHERE nombre = $1 AND area = $2
+    RETURNING *;
   `;
 
-  try {
-    // Verificar si la reserva existe
-    const reservaExistente = await pool.query(selectQuery, [nombre, salon, area]);
+  console.log("Intentando cancelar reserva con los parámetros:", { nombre, area, salon });
 
-    if (reservaExistente.rows.length === 0) {
-      return res.status(404).json({ mensaje: "No se encontró una reserva con ese nombre, área y salón." });
+  try {
+    // Ejecutar la consulta de eliminación
+    const result = await pool.query(deleteQuery, [nombre, area]);
+
+    // Verificar si se eliminó alguna reserva
+    if (result.rows.length === 0) {
+      return res.status(404).json({ mensaje: "No se encontró una reserva con los datos proporcionados." });
     }
 
-    // Eliminar la reserva
-    await pool.query(deleteQuery, [nombre, salon, area]);
-
+    // Confirmar que la reserva fue eliminada
     return res.status(200).json({ mensaje: "Reserva cancelada correctamente." });
   } catch (err) {
-    console.error('Error al cancelar la reserva:', err);
-    return res.status(500).json({ mensaje: "Error interno del servidor." });
+    console.error("Error al cancelar la reserva:", err);
+    return res.status(500).json({ mensaje: "Error interno del servidor. Por favor, intente más tarde." });
   }
 });
+
 
 
 app.listen(port, () => {

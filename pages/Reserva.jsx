@@ -20,6 +20,9 @@ function ReservaForm() {
   const [reservas, setReservas] = useState([]);
   const [horariosDisponibles, setHorariosDisponibles] = useState([]);
   const [mostrarCancelar, setMostrarCancelar] = useState(false); // Estado para alternar formularios
+  const [nombreCancelar, setNombreCancelar] = useState('');
+const [areaCancelar, setAreaCancelar] = useState('');
+const [salonCancelar, setSalonCancelar] = useState('');
 
   const mostrarHoras = () => {
     // Generar las horas de 6:00 AM a 5:00 PM
@@ -198,31 +201,38 @@ function ReservaForm() {
       });
   };
 
-  const handleCancelarSubmit = () => {
-    // Asegurarse de que los valores estén definidos
-    if (!nombre || !area || !salon) {
-      alert("Por favor, complete todos los campos antes de cancelar la reserva.");
+  const handleCancelarSubmit = (e) => {
+    e.preventDefault(); // Evitar recarga de la página
+    
+    // Validación
+    if (!nombreCancelar || !areaCancelar || !salonCancelar) {
+      alert("Por favor, complete todos los campos para cancelar la reserva.");
       return;
     }
   
-    // Construir la URL con los parámetros necesarios
-    const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombre)}&area=${encodeURIComponent(area)}&salon=${encodeURIComponent(salon)}`;
+    // Construir la URL
+    const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombreCancelar)}&area=${encodeURIComponent(areaCancelar)}&salon=${encodeURIComponent(salonCancelar)}`;
   
+    // Realizar la petición DELETE
     fetch(url, {
-      method: "DELETE", // Método DELETE como define tu endpoint
+      method: "DELETE",
     })
       .then((response) => {
         if (!response.ok) {
           throw new Error(`Error en la solicitud: ${response.status}`);
         }
-        return response.json(); // Convertir la respuesta en JSON
+        return response.json();
       })
       .then((data) => {
-        alert(data.mensaje); // Mostrar el mensaje del servidor
+        alert(data.mensaje); // Mensaje del servidor
+        // Limpiar campos tras cancelar
+        setNombreCancelar('');
+        setAreaCancelar('');
+        setSalonCancelar('');
       })
       .catch((error) => {
         console.error("Error al cancelar la reserva:", error);
-        alert("Hubo un problema al cancelar la reserva. Intente nuevamente.");
+        alert("Hubo un problema al cancelar la reserva.");
       });
   };
   
@@ -396,8 +406,8 @@ function ReservaForm() {
               <input
                 type="text"
                 id="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                value={nombreCancelar}
+                onChange={(e) => setNombreCancelar(e.target.value)}
                 required
               />
             </div>
@@ -405,8 +415,8 @@ function ReservaForm() {
               <label htmlFor="area">Área:</label>
               <select
                 id="area"
-                value={area}
-                onChange={(e) => setArea(e.target.value)}
+                value={areaCancelar}
+                onChange={(e) => setAreaCancelar(e.target.value)}
                 required
               >
                 <option value="">Seleccione el área</option>
@@ -423,8 +433,8 @@ function ReservaForm() {
               <label htmlFor="salon">Salón:</label>
               <select
                 id="salon"
-                value={salon}
-                onChange={(e) => setSalon(e.target.value)}
+                value={salonCancelar}
+                onChange={(e) => setSalonCancelar(e.target.value)}
                 required
               >
                 <option value="">Seleccione el salón</option>
