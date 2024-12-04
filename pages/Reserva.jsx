@@ -34,6 +34,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
     setHorasDisponibles(horas);
   };
   // Validar el formulario antes del envío
+  
   const validarFormulario = () => {
     if (
       !nombre ||
@@ -55,14 +56,14 @@ const [salonCancelar, setSalonCancelar] = useState('');
     return true;
   };
 
-  // Enviar la reserva al servidor
   const handleSubmit = (event) => {
     event.preventDefault();
-
+  
+    // Verificamos si el formulario es válido
     if (!validarFormulario()) {
       return;
     }
-
+  
     const reservaData = {
       nombre,
       fecha,
@@ -72,89 +73,63 @@ const [salonCancelar, setSalonCancelar] = useState('');
       area,
       motivo,
     };
-
-    // Hacer una solicitud para verificar si el horario está disponible
-    fetch("https://reservas-zer3.onrender.com/reservar", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(reservaData),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (
-          data.mensaje ===
-          "Ya existe una reserva en este horario. Intenta con otro horario."
-        ) {
-          // Si ya existe una reserva en ese horario, muestra el error
-          Swal.fire("Error", data.mensaje, "error");
-        } else {
-          // Si no hay conflictos, muestra la confirmación de la reserva
-          Swal.fire({
-            title: "Confirma tu reserva",
-            html: `
-             <p style="color: blue;"><strong>Nombre:</strong> ${nombre}</p>
-              <p><strong>Fecha:</strong> ${
-                fecha ? fecha.toISOString().split("T")[0] : "No seleccionada"
-              }</p> 
-              <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
-              <p><strong>Hora Final:</strong> ${horaFinal}</p>
-              <p><strong>Salón:</strong> ${salon}</p>
-              <p><strong>Área:</strong> ${area}</p>
-              <p><strong>Motivo:</strong> ${motivo}</p>
-            `,
-            icon: "info",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Confirmar Reserva",
-            cancelButtonText: "Cancelar",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              // Si el usuario confirma la reserva, la registramos
-              fetch("https://reservas-zer3.onrender.com/reservar", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(reservaData),
-              })
-                .then((response) => response.json())
-                .then((data) => {
-                  Swal.fire(
-                    "¡Reserva realizada!",
-                    "Tu reserva ha sido registrada con éxito.",
-                    "success"
-                  ).then(() => {
-                    // Redirige a la página deseada después de la confirmación
-                    window.location.href = "https://www.merkahorro.com/";
-                  });
-                })
-                .catch((error) => {
-                  console.error("Error al hacer la reserva:", error);
-                  Swal.fire(
-                    "Error",
-                    "No se pudo realizar la reserva. Intente más tarde.",
-                    "error"
-                  );
-                });
+  
+    // Mostrar la confirmación antes de proceder
+    Swal.fire({
+      title: "¿Confirmas tu reserva?",
+      html: `
+        <p style="color: blue;"><strong>Nombre:</strong> ${nombre}</p>
+        <p><strong>Fecha:</strong> ${fecha ? fecha.toISOString().split("T")[0] : "No seleccionada"}</p> 
+        <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
+        <p><strong>Hora Final:</strong> ${horaFinal}</p>
+        <p><strong>Salón:</strong> ${salon}</p>
+        <p><strong>Área:</strong> ${area}</p>
+        <p><strong>Motivo:</strong> ${motivo}</p>
+      `,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Confirmar Reserva",
+      cancelButtonText: "Cancelar",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Si el usuario confirma la reserva, la enviamos al servidor
+        fetch("https://reservas-zer3.onrender.com/reservar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(reservaData),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.mensaje === "Reserva almacenada exitosamente.") {
+              // Si la reserva se guarda correctamente, mostramos el mensaje de éxito
+              Swal.fire(
+                "¡Reserva realizada!",
+                "Tu reserva ha sido registrada con éxito.",
+                "success"
+              ).then(() => {
+                // Redirigir a otra página después de la confirmación
+                window.location.href = "https://www.merkahorro.com/";
+              });
             } else {
-              // Si el usuario cancela, no hacemos nada (no se guarda la reserva)
-              console.log("Reserva cancelada por el usuario.");
+              Swal.fire("Error", data.mensaje || "Hubo un problema al guardar la reserva. Intenta más tarde.", "error");
             }
+          })
+          .catch((error) => {
+            console.error("Error al realizar la reserva:", error);
+            Swal.fire("Error", "No se pudo realizar la reserva. Intente más tarde.", "error");
           });
-        }
-      })
-      .catch((error) => {
-        console.error("Error al verificar la disponibilidad:", error);
-        Swal.fire(
-          "Error",
-          "Hubo un problema al verificar la disponibilidad. Intente de nuevo más tarde.",
-          "error"
-        );
-      });
+      } else {
+        // Si el usuario cancela, no hacemos nada
+        console.log("Reserva cancelada por el usuario.");
+      }
+    });
   };
+  
+  
 
   // Consultar reservas para un salón y fecha específicos
   const consultarReservasPorFecha = (fechaSeleccionada) => {
