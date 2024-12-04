@@ -201,42 +201,70 @@ const [salonCancelar, setSalonCancelar] = useState('');
       });
   };
 
+  
+
   const handleCancelarSubmit = (e) => {
     e.preventDefault(); // Evitar recarga de la página
-    
+  
     // Validación
     if (!nombreCancelar || !areaCancelar || !salonCancelar) {
-      alert("Por favor, complete todos los campos para cancelar la reserva.");
+      Swal.fire({
+        icon: 'warning',
+        title: 'Campos incompletos',
+        text: 'Por favor, complete todos los campos para cancelar la reserva.',
+      });
       return;
     }
   
-    // Construir la URL
-    const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombreCancelar)}&area=${encodeURIComponent(areaCancelar)}&salon=${encodeURIComponent(salonCancelar)}`;
+    // Mostrar confirmación antes de proceder
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `Está a punto de cancelar la reserva. ¿Desea continuar?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sí, cancelar',
+      cancelButtonText: 'No, mantener reserva',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Construir la URL
+        const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombreCancelar)}&area=${encodeURIComponent(areaCancelar)}&salon=${encodeURIComponent(salonCancelar)}`;
   
-    // Realizar la petición DELETE
-    fetch(url, {
-      method: "DELETE",
-    })
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`Error en la solicitud: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        alert(data.mensaje); // Mensaje del servidor
-        // Limpiar campos tras cancelar
-        setNombreCancelar('');
-        setAreaCancelar('');
-        setSalonCancelar('');
-      })
-      .catch((error) => {
-        console.error("Error al cancelar la reserva:", error);
-        alert("Hubo un problema al cancelar la reserva.");
-      });
+        // Realizar la petición DELETE
+        fetch(url, {
+          method: 'DELETE',
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Error en la solicitud: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((data) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Reserva cancelada',
+              text: data.mensaje,
+            });
+  
+            // Limpiar campos tras cancelar
+            setNombreCancelar('');
+            setAreaCancelar('');
+            setSalonCancelar('');
+          })
+          .catch((error) => {
+            console.error('Error al cancelar la reserva:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Hubo un problema al cancelar la reserva.',
+            });
+          });
+      }
+    });
   };
   
-
 
   // Generar horarios disponibles basado en las reservas existentes
   const generarHorariosDisponibles = (reservas) => {
