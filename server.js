@@ -59,7 +59,7 @@ app.post('/reservar', async (req, res) => {
     `;
 
     await pool.query(insertQuery, [nombre, area ,motivo, fecha, horaInicio, horaFinal,'reservado',salon]);
-    res.json({ mensaje: 'Reserva realizada con éxitodsd' });
+    res.json({ mensaje: 'Reserva almacenada exitosamente' });
 
   } catch (error) {
     console.error('Error al realizar la reserva:', error.message);
