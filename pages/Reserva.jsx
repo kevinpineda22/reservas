@@ -383,12 +383,11 @@ const validarNombre = (e) => {
               >
                 <option value="">Seleccione el área</option>
                 <option value="Gerencia">Gerencia</option>
-                <option value="Gestión humana">Gestión humana</option>
-                <option value="Operaciones">Operaciones</option>
-                <option value="Contabilidad">Contabilidad</option>
-                <option value="Comercial">Comercial</option>
-                <option value="Compras">Compras</option>
-                <option value="Tesorería">Tesorería</option>
+                <option value="Gestión humana">Dirección Gestión humana</option>
+                <option value="Operaciones">Dirección Operaciones</option>
+                <option value="Contabilidad">Dirección Administrativa y Financiera</option>
+                <option value="Comercial">Dirección Comercial</option>
+               
               </select>
             </div>
             <div>
@@ -501,12 +500,11 @@ const validarNombre = (e) => {
               >
                 <option value="">Seleccione el área</option>
                 <option value="Gerencia">Gerencia</option>
-                <option value="Gestión humana">Gestión humana</option>
-                <option value="Operaciones">Operaciones</option>
-                <option value="Contabilidad">Contabilidad</option>
-                <option value="Comercial">Comercial</option>
-                <option value="Compras">Compras</option>
-                <option value="Tesorería">Tesorería</option>
+                <option value="Gestión humana">Dirección Gestión humana</option>
+                <option value="Operaciones">Dirección Operaciones</option>
+                <option value="Contabilidad">Dirección Administrativa y Financiera</option>
+                <option value="Comercial">Dirección Comercial</option>
+                
               </select>
             </div>
             <div>
