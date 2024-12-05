@@ -520,7 +520,7 @@ const validarNombre = (e) => {
                 <option value="">Seleccione el salón</option>
                 <option value="Auditorio Principal">Auditorio Principal</option>
                 <option value="Sala de Juntas">Sala de Juntas</option>
-                <option value="Sala de reserva">Sala de reserva</option>
+                {/* <option value="Sala de reserva">Sala de reserva</option> */}
               </select>
             </div>
 
