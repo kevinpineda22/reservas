@@ -20,10 +20,12 @@ function ReservaForm() {
   const [reservas, setReservas] = useState([]);
   const [horariosDisponibles, setHorariosDisponibles] = useState([]);
   const [mostrarCancelar, setMostrarCancelar] = useState(false); // Estado para alternar formularios
-  const [nombreCancelar, setNombreCancelar] = useState('');
-const [areaCancelar, setAreaCancelar] = useState('');
-const [salonCancelar, setSalonCancelar] = useState('');
-
+  const [nombreCancelar, setNombreCancelar] = useState("");
+  const [areaCancelar, setAreaCancelar] = useState("");
+  const [salonCancelar, setSalonCancelar] = useState("");
+  // Estados de errores para cada campo
+  const [errorNombre, setErrorNombre] = useState("");
+  const [errorMotivo, setErrorMotivo] = useState("");
   const mostrarHoras = () => {
     // Generar las horas de 6:00 AM a 5:00 PM
     const horas = [];
@@ -34,7 +36,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
     setHorasDisponibles(horas);
   };
   // Validar el formulario antes del envío
-  
+
   const validarFormulario = () => {
     if (
       !nombre ||
@@ -58,12 +60,12 @@ const [salonCancelar, setSalonCancelar] = useState('');
 
   const handleSubmit = (event) => {
     event.preventDefault();
-  
+
     // Verificamos si el formulario es válido
     if (!validarFormulario()) {
       return;
     }
-  
+
     const reservaData = {
       nombre,
       fecha,
@@ -73,13 +75,15 @@ const [salonCancelar, setSalonCancelar] = useState('');
       area,
       motivo,
     };
-  
+
     // Mostrar la confirmación antes de proceder
     Swal.fire({
       title: "¿Confirmas tu reserva?",
       html: `
         <p style="color: blue;"><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Fecha:</strong> ${fecha ? fecha.toISOString().split("T")[0] : "No seleccionada"}</p> 
+        <p><strong>Fecha:</strong> ${
+          fecha ? fecha.toISOString().split("T")[0] : "No seleccionada"
+        }</p> 
         <p><strong>Hora de Inicio:</strong> ${horaInicio}</p>
         <p><strong>Hora Final:</strong> ${horaFinal}</p>
         <p><strong>Salón:</strong> ${salon}</p>
@@ -104,7 +108,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
         })
           .then((response) => {
             // Verificar si la respuesta es exitosa
-            
+
             if (!response.ok) {
               throw new Error("Hubo un problema con la reserva.");
             }
@@ -113,7 +117,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
           .then((data) => {
             // Log de la respuesta para depuración
             console.log("Respuesta del servidor:", data);
-  
+
             // Asegurarse de que el mensaje de éxito esté presente
             if (data.mensaje === "Reserva almacenada exitosamente") {
               // Si la reserva se almacena correctamente, mostrar el mensaje de éxito
@@ -129,7 +133,8 @@ const [salonCancelar, setSalonCancelar] = useState('');
               // Si no se recibe el mensaje esperado, mostrar un mensaje de error
               Swal.fire(
                 "Error",
-                data.mensaje || "Hubo un problema al guardar la reserva. Intenta más tarde.",
+                data.mensaje ||
+                  "Hubo un problema al guardar la reserva. Intenta más tarde.",
                 "error"
               );
             }
@@ -137,7 +142,12 @@ const [salonCancelar, setSalonCancelar] = useState('');
           .catch((error) => {
             // Manejo de error en caso de problemas con la red o servidor
             console.error("Error al realizar la reserva:", error);
-            Swal.fire("Error", error.message || "No se pudo realizar la reserva. Intente más tarde.", "error");
+            Swal.fire(
+              "Error",
+              error.message ||
+                "No se pudo realizar la reserva. Intente más tarde.",
+              "error"
+            );
           });
       } else {
         // Si el usuario cancela, no hacemos nada
@@ -145,7 +155,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
       }
     });
   };
-  
+
   // Consultar reservas para un salón y fecha específicos
   const consultarReservasPorFecha = (fechaSeleccionada) => {
     if (!salon) {
@@ -191,39 +201,41 @@ const [salonCancelar, setSalonCancelar] = useState('');
       });
   };
 
-  
-
   const handleCancelarSubmit = (e) => {
     e.preventDefault(); // Evitar recarga de la página
-  
+
     // Validación
     if (!nombreCancelar || !areaCancelar || !salonCancelar) {
       Swal.fire({
-        icon: 'warning',
-        title: 'Campos incompletos',
-        text: 'Por favor, complete todos los campos para cancelar la reserva.',
+        icon: "warning",
+        title: "Campos incompletos",
+        text: "Por favor, complete todos los campos para cancelar la reserva.",
       });
       return;
     }
-  
+
     // Mostrar confirmación antes de proceder
     Swal.fire({
-      title: '¿Está seguro?',
+      title: "¿Está seguro?",
       text: `Está a punto de cancelar la reserva. ¿Desea continuar?`,
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Sí, cancelar',
-      cancelButtonText: 'No, mantener reserva',
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Sí, cancelar",
+      cancelButtonText: "No, mantener reserva",
     }).then((result) => {
       if (result.isConfirmed) {
         // Construir la URL
-        const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(nombreCancelar)}&area=${encodeURIComponent(areaCancelar)}&salon=${encodeURIComponent(salonCancelar)}`;
-  
+        const url = `https://reservas-zer3.onrender.com/cancelarReserva?nombre=${encodeURIComponent(
+          nombreCancelar
+        )}&area=${encodeURIComponent(areaCancelar)}&salon=${encodeURIComponent(
+          salonCancelar
+        )}`;
+
         // Realizar la petición DELETE
         fetch(url, {
-          method: 'DELETE',
+          method: "DELETE",
         })
           .then((response) => {
             if (!response.ok) {
@@ -233,28 +245,30 @@ const [salonCancelar, setSalonCancelar] = useState('');
           })
           .then((data) => {
             Swal.fire({
-              icon: 'success',
-              title: 'Reserva cancelada',
+              icon: "success",
+              title: "Reserva cancelada",
               text: data.mensaje,
+            }).then(() => {
+              // Redirigir a una nueva URL después de mostrar el mensaje
+              window.location.href = "https://www.merkahorro.com/"; // Reemplaza con la URL deseada
             });
-  
+
             // Limpiar campos tras cancelar
-            setNombreCancelar('');
-            setAreaCancelar('');
-            setSalonCancelar('');
+            setNombreCancelar("");
+            setAreaCancelar("");
+            setSalonCancelar("");
           })
           .catch((error) => {
-            console.error('Error al cancelar la reserva:', error);
+            console.error("Error al cancelar la reserva:", error);
             Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: 'Hubo un problema al cancelar la reserva.',
+              icon: "error",
+              title: "Error",
+              text: "Hubo un problema al cancelar la reserva.",
             });
           });
       }
     });
   };
-  
 
   // Generar horarios disponibles basado en las reservas existentes
   const generarHorariosDisponibles = (reservas) => {
@@ -287,6 +301,41 @@ const [salonCancelar, setSalonCancelar] = useState('');
     setMotivo("");
   };
 
+ // Función para manejar la validación del nombre
+const validarNombre = (e) => {
+  const value = e.target.value;
+  const regex = /^[a-zA-Z\s]+$/; // Solo letras y espacios
+
+  // Validación de caracteres
+  if (!regex.test(value) && value !== "") {
+    setErrorNombre("El nombre solo puede contener letras y espacios");
+  }
+  // Validación de longitud
+  else if (value.length > 30) {
+    setErrorNombre("El nombre no puede tener más de 30 caracteres");
+  } 
+  else {
+    setErrorNombre(""); // Si no hay errores, se limpia el mensaje
+    setNombre(value);
+  }
+};
+
+
+  // Función para manejar la validación del motivo
+  const validarMotivo = (e) => {
+    const value = e.target.value;
+    const regex = /^[a-zA-Z\s]+$/; // Solo letras y espacios
+
+    if (value.length > 60) {
+      setErrorMotivo("El motivo no puede exceder los 60 caracteres");
+    } else if (!regex.test(value) && value !== "") {
+      setErrorMotivo("El motivo solo puede contener letras y espacios");
+    } else {
+      setErrorMotivo("");
+      setMotivo(value);
+    }
+  };
+
   return (
     <div>
       {!mostrarCancelar && (
@@ -304,7 +353,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
                 <option value="">Seleccione el salón</option>
                 <option value="Auditorio Principal">Auditorio Principal</option>
                 <option value="Sala de Juntas">Sala de Juntas</option>
-                <option value="Sala de reserva">Sala de reserva</option>
+                {/* <option value="Sala de reserva">Sala de reserva</option> */}
               </select>
             </div>
             <div>
@@ -313,9 +362,16 @@ const [salonCancelar, setSalonCancelar] = useState('');
                 type="text"
                 id="nombre"
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                onChange={validarNombre}
                 required
               />
+              {errorNombre && (
+                <p
+                  style={{ color: "red", fontSize: "0.9em", marginTop: "5px" }}
+                >
+                  {errorNombre}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="area">Área:</label>
@@ -340,9 +396,15 @@ const [salonCancelar, setSalonCancelar] = useState('');
               <textarea
                 id="motivo"
                 value={motivo}
-                onChange={(e) => setMotivo(e.target.value)}
-                required
+                onChange={validarMotivo}
               ></textarea>
+               {errorMotivo && (
+                <p
+                  style={{ color: "red", fontSize: "0.9em", marginTop: "5px" }}
+                >
+                  {errorMotivo}
+                </p>
+              )}
             </div>
             <div>
               <label htmlFor="fecha">Fecha:</label>
@@ -461,7 +523,7 @@ const [salonCancelar, setSalonCancelar] = useState('');
                 <option value="Sala de reserva">Sala de reserva</option>
               </select>
             </div>
-            
+
             <button className="btn-primary" type="submit">
               Cancelar Reserva
             </button>

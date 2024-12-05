@@ -15,10 +15,7 @@ const Header = () => {
         <img src="/Imagen2.jpg" alt="Imagen 2" className="header-image" />
         <p className="image-title">Sala de Juntas</p>
       </div>
-      <div className="image-container">
-        <img src="/Imagen3.jpg" alt="Imagen 3" className="header-image" />
-        <p className="image-title">Sala de reserva</p>
-      </div>
+     
 
       {/* Enlace a /reservas */}
       <Link to="/reservas" className="reserve-link">
