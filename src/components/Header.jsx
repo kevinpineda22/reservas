@@ -44,8 +44,8 @@ const Header = () => {
           };
         });
 
-        // console.log("Eventos formateados:", eventosFormateados);
-        // setEventos(eventosFormateados);
+        console.log("Eventos formateados:", eventosFormateados);
+        setEventos(eventosFormateados);
       } else {
         console.log("No se encontraron reservas.");
         setEventos([]);
