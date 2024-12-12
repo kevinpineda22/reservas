@@ -71,7 +71,7 @@ const Header = () => {
       html: `
         <p><b>Salón:</b> ${event.salon}</p>
         <p><b>Reservado por:</b> ${event.reservadoPor}</p>
-        <p><b>Descripción:</b> ${event.motivo}</p>
+        <p><b>Motivo:</b> ${event.motivo}</p>
         <p><b>Hora de Inicio:</b> ${moment(event.start).format("HH:mm")}</p>
         <p><b>Hora de Fin:</b> ${moment(event.end).format("HH:mm")}</p>
       `,
