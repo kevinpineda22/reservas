@@ -19,21 +19,23 @@ const Header = () => {
     try {
       let url = `https://reservas-zer3.onrender.com/consulta?fecha=${fecha}`;
       const response = await fetch(url);
-  
+
       if (!response.ok) {
         throw new Error("Error al obtener las reservas");
       }
-  
+
       const data = await response.json();
-  
+
       if (data.horarios && data.horarios.length > 0) {
         const eventosFormateados = data.horarios.map((reserva) => {
           // Crear objetos Date correctamente
           const inicio = new Date(`${reserva.fecha}T${reserva.hora_inicio}:00`);
           const fin = new Date(`${reserva.fecha}T${reserva.hora_fin}:00`);
-  
+
           return {
-            title: `Salón: ${reserva.salon} | Reservado por: ${reserva.nombre || "Desconocido"}`,
+            title: `Salón: ${reserva.salon} | Reservado por: ${
+              reserva.nombre || "Desconocido"
+            }`,
             start: inicio,
             end: fin,
             salon: reserva.salon,
@@ -41,7 +43,7 @@ const Header = () => {
             motivo: reserva.motivo || "Sin descripción",
           };
         });
-  
+
         console.log("Eventos formateados:", eventosFormateados);
         setEventos(eventosFormateados);
       } else {
@@ -50,10 +52,13 @@ const Header = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      Swal.fire("Error", "No se pudieron cargar las reservas. Intente más tarde.", "error");
+      Swal.fire(
+        "Error",
+        "No se pudieron cargar las reservas. Intente más tarde.",
+        "error"
+      );
     }
   };
-  
 
   useEffect(() => {
     const fechaSeleccionada = moment().format("YYYY-MM-DD"); // Por defecto, hoy
@@ -74,6 +79,21 @@ const Header = () => {
     });
   };
 
+  const mensajesEnEspanol = {
+    allDay: "Todo el día",
+    previous: "<",
+    next: ">",
+    today: "Hoy",
+    month: "Mes",
+    week: "Semana",
+    day: "Día",
+    agenda: "Agenda",
+    date: "Fecha",
+    time: "Hora",
+    event: "Evento",
+    noEventsInRange: "No hay eventos en este rango de fechas.",
+    showMore: (total) => `+ Ver más (${total})`,
+  };
   return (
     <header className="header">
       <h1>Reserva tus espacios</h1>
@@ -108,10 +128,12 @@ const Header = () => {
         events={eventos}
         startAccessor="start"
         endAccessor="end"
+        className="calendar-container"  // Agrega la clase CSS
+        messages={mensajesEnEspanol}
         style={{
           backgroundColor: "white",
           color: "black",
-          height: 500,
+          height: 450,
           margin: "50px",
         }}
         onSelectEvent={handleSelectEvent}

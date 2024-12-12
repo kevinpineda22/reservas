@@ -150,3 +150,61 @@
   background-color: #89dc00;
   transform: translateY(-3px);
 }
+
+@media (max-width: 768px) {
+  .calendar-container {
+    height: 60vh; /* Ajustar la altura */
+    margin: 20px; /* Ajustar márgenes */
+  }
+
+  /* Ajustar la fuente de los eventos en dispositivos móviles */
+  .rbc-event {
+    font-size: 12px;  /* Reducir el tamaño de la fuente */
+  }
+}
+@media (max-width: 480px) {
+  .calendar-container {
+    height: 60vh; /* Ajustar la altura */
+    margin: 20px; /* Ajustar márgenes */
+  }
+
+  /* Ajustar la fuente de los eventos en dispositivos móviles */
+  .rbc-event {
+    font-size: 12px;  /* Reducir el tamaño de la fuente */
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-container {
+    height: 50vh;  /* Ajustar la altura para pantallas pequeñas */
+    margin: 10px;  /* Reducir márgenes */
+  }
+
+  .rbc-event {
+    font-size: 12px; /* Reducir el tamaño de la fuente de los eventos */
+  }
+
+ 
+
+  .rbc-month-view {
+    padding: 0; /* Reducir el espacio adicional en la vista mensual */
+  }
+
+  .rbc-day-slot {
+    font-size: 12px; /* Reducir el tamaño de las horas en la vista diaria */
+  }
+  .rbc-toolbar button {
+    color: #373a3c;
+    display: inline-block;
+    margin: 0;
+    text-align: center;
+    vertical-align: middle;
+    background: none;
+    background-image: none;
+    border: 1px solid #ccc;
+    padding: 5px;
+    border-radius: 3px;
+    line-height: normal;
+    white-space: nowrap;
+   }
+}
