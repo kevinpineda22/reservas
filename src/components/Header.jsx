@@ -17,29 +17,31 @@ const Header = () => {
   // Función para consultar reservas por fecha
   const consultarReservas = async (fecha) => {
     try {
-      let url = `http://localhost:5200/consulta?fecha=${fecha}`;
+      let url = `https://reservas-zer3.onrender.com/consulta?fecha=${fecha}`;
       const response = await fetch(url);
-
+  
       if (!response.ok) {
         throw new Error("Error al obtener las reservas");
       }
-
+  
       const data = await response.json();
-
+  
       if (data.horarios && data.horarios.length > 0) {
-        const eventosFormateados = data.horarios.map((reserva) => ({
-          title: `Salón: ${reserva.salon} | Reservado por: ${
-            reserva.reservadoPor || "Desconocido"
-          }`,
-          start: moment(`${reserva.fecha}T${reserva.hora_inicio}`, "YYYY-MM-DDTHH:mm:ss").toDate(),
-          end: moment(`${reserva.fecha}T${reserva.hora_fin}`, "YYYY-MM-DDTHH:mm:ss").toDate(),
-          
-       
-          salon: reserva.salon,
-          reservadoPor: reserva.reservadoPor || "Desconocido",
-          motivo: reserva.motivo || "Sin descripción",
-        }));
-
+        const eventosFormateados = data.horarios.map((reserva) => {
+          // Crear objetos Date correctamente
+          const inicio = new Date(`${reserva.fecha}T${reserva.hora_inicio}:00`);
+          const fin = new Date(`${reserva.fecha}T${reserva.hora_fin}:00`);
+  
+          return {
+            title: `Salón: ${reserva.salon} | Reservado por: ${reserva.nombre || "Desconocido"}`,
+            start: inicio,
+            end: fin,
+            salon: reserva.salon,
+            reservadoPor: reserva.nombre || "Desconocido",
+            motivo: reserva.motivo || "Sin descripción",
+          };
+        });
+  
         console.log("Eventos formateados:", eventosFormateados);
         setEventos(eventosFormateados);
       } else {
@@ -48,33 +50,29 @@ const Header = () => {
       }
     } catch (error) {
       console.error("Error:", error);
-      Swal.fire(
-        "Error",
-        "No se pudieron cargar las reservas. Intente más tarde.",
-        "error"
-      );
+      Swal.fire("Error", "No se pudieron cargar las reservas. Intente más tarde.", "error");
     }
   };
+  
 
+  useEffect(() => {
+    const fechaSeleccionada = moment().format("YYYY-MM-DD"); // Por defecto, hoy
+    consultarReservas(fechaSeleccionada); // Solo una vez al cargar la página
+  }, []);
 
- useEffect(() => {
-  const fechaSeleccionada = moment().format("YYYY-MM-DD"); // Por defecto, hoy
-  consultarReservas(fechaSeleccionada); // Solo una vez al cargar la página
-}, []);
-
-const handleSelectEvent = (event) => {
-  Swal.fire({
-    title: "Información de la Reserva",
-    html: `
-      <p><b>Salón:</b> ${event.salon}</p>
-      <p><b>Reservado por:</b> ${event.reservadoPor}</p>
-      <p><b>Descripción:</b> ${event.motivo}</p>
-     <p><b>Hora de Inicio:</b> ${moment(event.start).format("HH:mm")}</p>
-      <p><b>Hora de Fin:</b> ${moment(event.end).format("HH:mm")}</p>
-    `,
-    icon: "info",
-  });
-};
+  const handleSelectEvent = (event) => {
+    Swal.fire({
+      title: "Información de la Reserva",
+      html: `
+        <p><b>Salón:</b> ${event.salon}</p>
+        <p><b>Reservado por:</b> ${event.reservadoPor}</p>
+        <p><b>Descripción:</b> ${event.motivo}</p>
+        <p><b>Hora de Inicio:</b> ${moment(event.start).format("HH:mm")}</p>
+        <p><b>Hora de Fin:</b> ${moment(event.end).format("HH:mm")}</p>
+      `,
+      icon: "info",
+    });
+  };
 
   return (
     <header className="header">

@@ -203,40 +203,45 @@ app.get("/consulta", async (req, res) => {
   const { salon } = req.query;
 
   try {
-    // Definir la consulta base sin filtrar por fecha
+    // Consulta SQL con formato de fecha y hora ajustados
     let query = `
-    SELECT salon, nombre, fecha, hora_inicio, hora_fin , motivo
-     
-  
-       motivo 
-    FROM sala_juntas_reservas
-  UNION
-    SELECT salon, nombre, fecha, hora_inicio, hora_fin, motivo
-          
-      
-    FROM auditorio_reservas
-  `;
+      SELECT 
+        salon, 
+        nombre, 
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
+        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
+        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
+        motivo
+      FROM sala_juntas_reservas
+      UNION
+      SELECT 
+        salon, 
+        nombre, 
+        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
+        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
+        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
+        motivo
+      FROM auditorio_reservas
+    `;
 
     const parametros = [];
 
-    // Si se pasa un salón específico, agregarlo a la consulta
     if (salon) {
       query += " WHERE salon = $1";
       parametros.push(salon);
     }
 
-    // Ejecutar la consulta
     console.log("Ejecutando consulta con parámetros:", parametros);
     const resultados = await pool.query(query, parametros);
 
+    console.log("Resultados de la consulta:", resultados.rows);
+
     if (resultados.rows.length === 0) {
       return res.status(404).json({
-        mensaje:
-          "No se encontraron reservas para los parámetros especificados.",
+        mensaje: "No se encontraron reservas para los parámetros especificados.",
       });
     }
 
-    // Responder con las reservas encontradas
     res.status(200).json({
       mensaje: "Reservas encontradas",
       horarios: resultados.rows,
