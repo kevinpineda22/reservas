@@ -1,18 +1,30 @@
 import { useState, useEffect } from "react";
-import { Calendar, momentLocalizer } from "react-big-calendar";
+import { Calendar,  dateFnsLocalizer } from "react-big-calendar";
 import { Link } from "react-router-dom";
 import moment from "moment";
 import Swal from "sweetalert2";
 import "moment/locale/es"; // Importar idioma español
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "./header.css";
+import es from 'date-fns/locale/es';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
 
-// Configura Moment.js para usar español globalmente
-moment.locale("es");
-const localizer = momentLocalizer(moment); // Configura localizador con Moment.js
+
+const locales = {
+  es: es,
+};
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales,
+});
 
 const Header = () => {
   const [eventos, setEventos] = useState([]);
+  const [myEvents, setMyEvents] = useState();
 
   // Función para consultar reservas por fecha
   const consultarReservas = async (fecha) => {
@@ -79,21 +91,7 @@ const Header = () => {
     });
   };
 
-  const mensajesEnEspanol = {
-    allDay: "Todo el día",
-    previous: "<",
-    next: ">",
-    today: "Hoy",
-    month: "Mes",
-    week: "Semana",
-    day: "Día",
-    agenda: "Agenda",
-    date: "Fecha",
-    time: "Hora",
-    event: "Evento",
-    noEventsInRange: "No hay eventos en este rango de fechas.",
-    showMore: (total) => `+ Ver más (${total})`,
-  };
+ 
   return (
     <header className="header">
       <h1>Reserva tus espacios</h1>
@@ -125,15 +123,28 @@ const Header = () => {
       {/* Calendario */}
       <Calendar
         localizer={localizer}
-        events={eventos}
+         events={eventos}
         startAccessor="start"
         endAccessor="end"
+        culture="es"
         className="calendar-container"  // Agrega la clase CSS
-        messages={mensajesEnEspanol}
+        messages={{
+          next: 'Siguiente',
+          previous: 'Anterior',
+          today: 'Hoy',
+          month: 'Mes',
+          week: 'Semana',
+          day: 'Día',
+          agenda: 'Agenda',
+          date: 'Fecha',
+          time: 'Hora',
+          event: 'Evento',
+          noEventsInRange: 'No hay eventos en este rango.',
+        }}
         style={{
           backgroundColor: "white",
           color: "black",
-          height: 450,
+          height: 520,
           margin: "50px",
         }}
         onSelectEvent={handleSelectEvent}
