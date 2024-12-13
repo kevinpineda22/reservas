@@ -387,6 +387,7 @@ const validarNombre = (e) => {
                 <option value="Operaciones">Dirección Operaciones</option>
                 <option value="Contabilidad">Dirección Administrativa y Financiera</option>
                 <option value="Comercial">Dirección Comercial</option>
+                <option value="Bachilleres">Escuela de Bachilleres</option>
                
               </select>
             </div>
@@ -504,6 +505,7 @@ const validarNombre = (e) => {
                 <option value="Operaciones">Dirección Operaciones</option>
                 <option value="Contabilidad">Dirección Administrativa y Financiera</option>
                 <option value="Comercial">Dirección Comercial</option>
+                <option value="Bachilleres">Escuela de Bachilleres</option>
                 
               </select>
             </div>
