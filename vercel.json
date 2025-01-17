@@ -11,9 +11,5 @@
       "src": "/(.*)",
       "dest": "/server.js"  
     }
-  ],
-  "env": {
-    "SUPABASE_DB_URL": "@supabase-db-url",  
-    "PORT": "5200"  
-  }
+  ]
 }
