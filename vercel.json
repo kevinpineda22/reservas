@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js", 
+      "use": "@vercel/node"  
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"  
+    }
+  ],
+  "env": {
+    "SUPABASE_DB_URL": "@supabase-db-url",  
+    "PORT": "5200"  
+  }
+}

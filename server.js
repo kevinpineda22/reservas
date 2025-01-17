@@ -10,7 +10,15 @@ const port = process.env.PORT || 5200;
 const { Pool } = pkg;
 
 const app = express();
-app.use(cors());
+
+// Configuración CORS para permitir solicitudes desde cualquier dominio
+const corsOptions = {
+  origin: "*",  // Permitir cualquier origen
+  methods: ["GET", "POST", "DELETE"], // Métodos permitidos
+  allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+};
+
+app.use(cors(corsOptions));  // Uso del middleware CORS con las opciones especificadas
 app.use(bodyParser.json());
 
 const pool = new Pool({
@@ -97,7 +105,6 @@ app.get("/reservas", async (req, res) => {
       .json({ error: "Por favor, proporciona el salón y la fecha." });
   }
 
-  // Determina dinámicamente el nombre de la tabla según el salón
   const tableName =
     salon.toLowerCase() === "sala de juntas"
       ? "sala_juntas_reservas"
@@ -105,7 +112,6 @@ app.get("/reservas", async (req, res) => {
       ? "sala_reserva_reservas"
       : "auditorio_reservas";
 
-  // Consulta para obtener las reservas del salón en una fecha específica, incluyendo el nombre de la persona
   const query = `
     SELECT hora_inicio, hora_fin, estado, nombre
     FROM ${tableName}
@@ -115,13 +121,11 @@ app.get("/reservas", async (req, res) => {
   try {
     const result = await pool.query(query, [salon, fecha]);
 
-    // Imprimir datos de las reservas para verificar en consola
     console.log(
       "Datos de reservas disponibles:",
       JSON.stringify(result.rows, null, 2)
     );
 
-    // Retornar los datos en formato JSON
     res.json({ horarios: result.rows });
   } catch (err) {
     console.error("Error al consultar la base de datos:", err);
@@ -129,25 +133,22 @@ app.get("/reservas", async (req, res) => {
   }
 });
 
-// Endpoint para cancelar una reserva// Endpoint para cancelar una reserva
+// Endpoint para cancelar una reserva
 app.delete("/cancelarReserva", async (req, res) => {
   const { nombre, area, salon } = req.query;
 
-  // Validar que los parámetros existen y no están vacíos
   if (!nombre || !area || !salon) {
     return res
       .status(400)
       .json({ mensaje: "Debe proporcionar el nombre, área y salón." });
   }
 
-  // Asegurarse de que los parámetros no estén vacíos
   if (!nombre.trim() || !area.trim() || !salon.trim()) {
     return res
       .status(400)
       .json({ mensaje: "Los campos no pueden estar vacíos." });
   }
 
-  // Mapear los nombres de salones a tablas en la base de datos
   const allowedSalons = {
     "auditorio principal": "auditorio_reservas",
     "sala de juntas": "sala_juntas_reservas",
@@ -156,14 +157,12 @@ app.delete("/cancelarReserva", async (req, res) => {
 
   const tableName = allowedSalons[salon.toLowerCase()];
 
-  // Verificar si el salón es válido
   if (!tableName) {
     return res
       .status(400)
       .json({ mensaje: "El salón proporcionado no es válido." });
   }
 
-  // Consulta para eliminar la reserva
   const deleteQuery = `
     DELETE FROM ${tableName}
     WHERE nombre = $1 AND area = $2
@@ -177,17 +176,14 @@ app.delete("/cancelarReserva", async (req, res) => {
   });
 
   try {
-    // Ejecutar la consulta de eliminación
     const result = await pool.query(deleteQuery, [nombre, area]);
 
-    // Verificar si se eliminó alguna reserva
     if (result.rows.length === 0) {
       return res.status(404).json({
         mensaje: "No se encontró una reserva con los datos proporcionados.",
       });
     }
 
-    // Confirmar que la reserva fue eliminada
     return res
       .status(200)
       .json({ mensaje: "Reserva cancelada correctamente." });
@@ -198,12 +194,12 @@ app.delete("/cancelarReserva", async (req, res) => {
     });
   }
 });
+
 // Endpoint para consultar reservas
 app.get("/consulta", async (req, res) => {
   const { salon } = req.query;
 
   try {
-    // Consulta SQL con formato de fecha y hora ajustados
     let query = `
       SELECT 
         salon, 
