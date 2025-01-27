@@ -251,6 +251,11 @@ app.get("/consulta", async (req, res) => {
   }
 });
 
+// Endpoint para verificar que el servidor está funcionando
+app.get("/vercel", (req, res) => {
+  res.send("server runninnnggg");
+});
+
 app.listen(port, () => {
   console.log("Servidor corriendo en el puerto", port);
 });
