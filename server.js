@@ -252,7 +252,7 @@ app.get("/consulta", async (req, res) => {
 });
 
 // Endpoint para verificar que el servidor está funcionando
-app.get("/vercel", (req, res) => {
+app.get("/", (req, res) => {
   res.send("server runninnnggg");
 });
 
