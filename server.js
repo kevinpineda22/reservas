@@ -4,21 +4,20 @@ import pkg from "pg";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 
-dotenv.config(); // Cargar las variables de entorno
+dotenv.config();
 
 const port = process.env.PORT || 5200;
 const { Pool } = pkg;
 
 const app = express();
 
-// Configuración CORS para permitir solicitudes desde cualquier dominio
 const corsOptions = {
-  origin: "*",  // Permitir cualquier origen
-  methods: ["GET", "POST", "DELETE"], // Métodos permitidos
-  allowedHeaders: ["Content-Type", "Authorization"], // Encabezados permitidos
+  origin: "*",
+  methods: ["GET", "POST", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-app.use(cors(corsOptions));  // Uso del middleware CORS con las opciones especificadas
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 const pool = new Pool({
@@ -35,14 +34,11 @@ pool
   });
 
 app.post("/reservar", async (req, res) => {
-  const { nombre, area, motivo, fecha, horaInicio, horaFinal, salon } =
-    req.body;
+  const { nombre, area, motivo, fecha, horaInicio, horaFinal, salon } = req.body;
   const tableName =
     salon.toLowerCase() === "sala de juntas"
       ? "sala_juntas_reservas"
-      : salon.toLowerCase() === "sala de reserva"
-      ? "sala_reserva_reservas"
-      : "auditorio_reservas";
+      : "auditorio_reservas"; // Eliminado "sala de reserva" ya que no existe en la BD
 
   try {
     const checkQuery = `
@@ -64,18 +60,18 @@ app.post("/reservar", async (req, res) => {
 
     if (checkResult.rows.length > 0) {
       return res.status(400).json({
-        mensaje:
-          "Ya existe una reserva en este horario. Intenta con otro horario.",
+        mensaje: "Ya existe una reserva en este horario. Intenta con otro horario.",
       });
     }
 
     const insertQuery = `
       INSERT INTO ${tableName}
       (nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id
     `;
 
-    await pool.query(insertQuery, [
+    const result = await pool.query(insertQuery, [
       nombre,
       area,
       motivo,
@@ -85,7 +81,8 @@ app.post("/reservar", async (req, res) => {
       "reservado",
       salon,
     ]);
-    res.json({ mensaje: "Reserva almacenada exitosamente" });
+
+    res.json({ mensaje: "Reserva almacenada exitosamente", id: result.rows[0].id });
   } catch (error) {
     console.error("Error al realizar la reserva:", error.message);
     res.status(500).json({
@@ -95,37 +92,39 @@ app.post("/reservar", async (req, res) => {
   }
 });
 
-// Endpoint para consultar horarios reservados
 app.get("/reservas", async (req, res) => {
-  const { salon, fecha } = req.query;
+  const { salon, fecha, nombre } = req.query;
 
-  if (!salon || !fecha) {
-    return res
-      .status(400)
-      .json({ error: "Por favor, proporciona el salón y la fecha." });
+  let query = `
+    SELECT id, nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon
+    FROM sala_juntas_reservas
+    WHERE 1=1
+    UNION
+    SELECT id, nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon
+    FROM auditorio_reservas
+    WHERE 1=1
+  `;
+  const params = [];
+  let paramIndex = 1;
+
+  if (salon) {
+    query += ` AND salon = $${paramIndex}`;
+    params.push(salon);
+    paramIndex++;
+  }
+  if (fecha) {
+    query += ` AND fecha = $${paramIndex}`;
+    params.push(fecha);
+    paramIndex++;
+  }
+  if (nombre) {
+    query += ` AND nombre = $${paramIndex}`;
+    params.push(nombre);
+    paramIndex++;
   }
 
-  const tableName =
-    salon.toLowerCase() === "sala de juntas"
-      ? "sala_juntas_reservas"
-      : salon.toLowerCase() === "sala de reserva"
-      ? "sala_reserva_reservas"
-      : "auditorio_reservas";
-
-  const query = `
-    SELECT hora_inicio, hora_fin, estado, nombre
-    FROM ${tableName}
-    WHERE salon = $1 AND fecha = $2;
-  `;
-
   try {
-    const result = await pool.query(query, [salon, fecha]);
-
-    console.log(
-      "Datos de reservas disponibles:",
-      JSON.stringify(result.rows, null, 2)
-    );
-
+    const result = await pool.query(query, params);
     res.json({ horarios: result.rows });
   } catch (err) {
     console.error("Error al consultar la base de datos:", err);
@@ -133,50 +132,26 @@ app.get("/reservas", async (req, res) => {
   }
 });
 
-// Endpoint para cancelar una reserva
 app.delete("/cancelarReserva", async (req, res) => {
-  const { nombre, area, salon } = req.query;
+  const { id, salon } = req.query;
 
-  if (!nombre || !area || !salon) {
-    return res
-      .status(400)
-      .json({ mensaje: "Debe proporcionar el nombre, área y salón." });
+  if (!id || !salon) {
+    return res.status(400).json({ mensaje: "Debe proporcionar el ID y el salón." });
   }
 
-  if (!nombre.trim() || !area.trim() || !salon.trim()) {
-    return res
-      .status(400)
-      .json({ mensaje: "Los campos no pueden estar vacíos." });
-  }
-
-  const allowedSalons = {
-    "auditorio principal": "auditorio_reservas",
-    "sala de juntas": "sala_juntas_reservas",
-    "sala de reserva": "sala_reserva_reservas",
-  };
-
-  const tableName = allowedSalons[salon.toLowerCase()];
-
-  if (!tableName) {
-    return res
-      .status(400)
-      .json({ mensaje: "El salón proporcionado no es válido." });
-  }
+  const tableName =
+    salon.toLowerCase() === "sala de juntas"
+      ? "sala_juntas_reservas"
+      : "auditorio_reservas";
 
   const deleteQuery = `
     DELETE FROM ${tableName}
-    WHERE nombre = $1 AND area = $2
+    WHERE id = $1 AND salon = $2
     RETURNING *;
   `;
 
-  console.log("Intentando cancelar reserva con los parámetros:", {
-    nombre,
-    area,
-    salon,
-  });
-
   try {
-    const result = await pool.query(deleteQuery, [nombre, area]);
+    const result = await pool.query(deleteQuery, [id, salon]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({
@@ -184,9 +159,7 @@ app.delete("/cancelarReserva", async (req, res) => {
       });
     }
 
-    return res
-      .status(200)
-      .json({ mensaje: "Reserva cancelada correctamente." });
+    return res.status(200).json({ mensaje: "Reserva cancelada correctamente." });
   } catch (err) {
     console.error("Error al cancelar la reserva:", err);
     return res.status(500).json({
@@ -195,13 +168,13 @@ app.delete("/cancelarReserva", async (req, res) => {
   }
 });
 
-// Endpoint para consultar reservas
 app.get("/consulta", async (req, res) => {
   const { salon } = req.query;
 
   try {
     let query = `
       SELECT 
+        id,
         salon, 
         nombre, 
         TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
@@ -211,6 +184,7 @@ app.get("/consulta", async (req, res) => {
       FROM sala_juntas_reservas
       UNION
       SELECT 
+        id,
         salon, 
         nombre, 
         TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
@@ -220,17 +194,14 @@ app.get("/consulta", async (req, res) => {
       FROM auditorio_reservas
     `;
 
-    const parametros = [];
+    const params = [];
 
     if (salon) {
       query += " WHERE salon = $1";
-      parametros.push(salon);
+      params.push(salon);
     }
 
-    console.log("Ejecutando consulta con parámetros:", parametros);
-    const resultados = await pool.query(query, parametros);
-
-    console.log("Resultados de la consulta:", resultados.rows);
+    const resultados = await pool.query(query, params);
 
     if (resultados.rows.length === 0) {
       return res.status(404).json({
@@ -251,9 +222,8 @@ app.get("/consulta", async (req, res) => {
   }
 });
 
-// Endpoint para verificar que el servidor está funcionando
 app.get("/", (req, res) => {
-  res.send("server runninnnggg");
+  res.send("server running");
 });
 
 app.listen(port, () => {
