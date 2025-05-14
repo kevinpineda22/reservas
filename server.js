@@ -1,5 +1,3 @@
-// Backend Express para reservas: cancelación precisa por nombre, salón, fecha, hora_inicio y hora_fin
-
 import express from "express";
 import cors from "cors";
 import pkg from "pg";
@@ -94,7 +92,7 @@ app.post("/reservar", async (req, res) => {
   }
 });
 
-// Consultar horarios reservados
+// Consultar horarios reservados (modificado para formatear horas como HH:mm)
 app.get("/reservas", async (req, res) => {
   const { salon, fecha } = req.query;
 
@@ -112,7 +110,12 @@ app.get("/reservas", async (req, res) => {
       : "auditorio_reservas";
 
   const query = `
-    SELECT hora_inicio, hora_fin, estado, nombre, motivo
+    SELECT 
+      TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
+      TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
+      estado, 
+      nombre, 
+      motivo
     FROM ${tableName}
     WHERE salon = $1 AND fecha = $2;
   `;
@@ -126,7 +129,7 @@ app.get("/reservas", async (req, res) => {
   }
 });
 
-// Cancelar una reserva (preciso por nombre, salón, fecha, hora_inicio, hora_fin)
+// Cancelar una reserva
 app.delete("/cancelarReserva", async (req, res) => {
   const { nombre, salon, fecha, hora_inicio, hora_fin } = req.query;
 
