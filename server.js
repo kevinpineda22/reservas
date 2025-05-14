@@ -33,14 +33,21 @@ pool
     console.error("Error de conexión a PostgreSQL", err);
   });
 
+// Ruta para crear una reserva
 app.post("/reservar", async (req, res) => {
   const { nombre, area, motivo, fecha, horaInicio, horaFinal, salon } = req.body;
   const tableName =
     salon.toLowerCase() === "sala de juntas"
       ? "sala_juntas_reservas"
-      : "auditorio_reservas"; // Eliminado "sala de reserva" ya que no existe en la BD
+      : "auditorio_reservas";
 
   try {
+    // Validar que todos los campos necesarios estén presentes
+    if (!nombre || !area || !motivo || !fecha || !horaInicio || !horaFinal || !salon) {
+      return res.status(400).json({ mensaje: "Faltan campos requeridos." });
+    }
+
+    // Verificar conflictos de horario
     const checkQuery = `
       SELECT * FROM ${tableName}
       WHERE fecha = $1 AND salon = $2
@@ -64,6 +71,7 @@ app.post("/reservar", async (req, res) => {
       });
     }
 
+    // Insertar la reserva
     const insertQuery = `
       INSERT INTO ${tableName}
       (nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
@@ -82,18 +90,22 @@ app.post("/reservar", async (req, res) => {
       salon,
     ]);
 
-    res.json({ mensaje: "Reserva almacenada exitosamente", id: result.rows[0].id });
+    res.status(200).json({
+      mensaje: "Reserva almacenada exitosamente",
+      id: result.rows[0].id,
+    });
   } catch (error) {
     console.error("Error al realizar la reserva:", error.message);
     res.status(500).json({
-      mensaje: "Hubo un error al realizar la reserva.",
+      mensaje: "Error al realizar la reserva.",
       error: error.message,
     });
   }
 });
 
+// Ruta para consultar reservas
 app.get("/reservas", async (req, res) => {
-  const { salon, fecha, nombre } = req.query;
+  const { salon, fecha, nombre, fechaInicio, fechaFin } = req.query;
 
   let query = `
     SELECT id, nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon
@@ -122,16 +134,30 @@ app.get("/reservas", async (req, res) => {
     params.push(nombre);
     paramIndex++;
   }
+  if (fechaInicio && fechaFin) {
+    query += ` AND fecha BETWEEN $${paramIndex} AND $${paramIndex + 1}`;
+    params.push(fechaInicio, fechaFin);
+    paramIndex += 2;
+  } else if (fechaInicio) {
+    query += ` AND fecha >= $${paramIndex}`;
+    params.push(fechaInicio);
+    paramIndex++;
+  } else if (fechaFin) {
+    query += ` AND fecha <= $${paramIndex}`;
+    params.push(fechaFin);
+    paramIndex++;
+  }
 
   try {
     const result = await pool.query(query, params);
-    res.json({ horarios: result.rows });
+    res.status(200).json({ horarios: result.rows });
   } catch (err) {
     console.error("Error al consultar la base de datos:", err);
-    res.status(500).json({ error: "Error interno del servidor." });
+    res.status(500).json({ mensaje: "Error interno del servidor." });
   }
 });
 
+// Ruta para cancelar una reserva
 app.delete("/cancelarReserva", async (req, res) => {
   const { id, salon } = req.query;
 
@@ -159,15 +185,16 @@ app.delete("/cancelarReserva", async (req, res) => {
       });
     }
 
-    return res.status(200).json({ mensaje: "Reserva cancelada correctamente." });
+    res.status(200).json({ mensaje: "Reserva cancelada correctamente." });
   } catch (err) {
     console.error("Error al cancelar la reserva:", err);
-    return res.status(500).json({
+    res.status(500).json({
       mensaje: "Error interno del servidor. Por favor, intente más tarde.",
     });
   }
 });
 
+// Ruta para consultar todas las reservas (con o sin filtro por salón)
 app.get("/consulta", async (req, res) => {
   const { salon } = req.query;
 
@@ -216,16 +243,17 @@ app.get("/consulta", async (req, res) => {
   } catch (error) {
     console.error("Error al consultar la base de datos:", error.message);
     res.status(500).json({
-      mensaje: "Hubo un error al consultar la base de datos.",
+      mensaje: "Error al consultar la base de datos.",
       error: error.message,
     });
   }
 });
 
+// Ruta raíz
 app.get("/", (req, res) => {
-  res.send("server running");
+  res.send("Servidor corriendo");
 });
 
 app.listen(port, () => {
-  console.log("Servidor corriendo en el puerto", port);
+  console.log(`Servidor corriendo en el puerto ${port}`);
 });
