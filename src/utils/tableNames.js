@@ -10,8 +10,10 @@ export const getTableName = (salon) => {
     case "sala de juntas":
       return "sala_juntas_reservas";
     case "sala de reserva":
-      return "sala_reserva_reservas";
+      // Esta tabla NO existe en la BD, redirigir a auditorio
+      return "auditorio_reservas";
     case "auditorio principal":
+    case "auditorio":
       return "auditorio_reservas";
     default:
       return "auditorio_reservas";
@@ -26,8 +28,9 @@ export const getTableName = (salon) => {
 export const isValidSalon = (salon) => {
   const allowedSalons = [
     "auditorio principal",
+    "auditorio",
     "sala de juntas",
-    "sala de reserva",
+    "sala de reserva", // Permitido, pero se mapea a auditorio_reservas
   ];
   return allowedSalons.includes(salon.toLowerCase());
 };

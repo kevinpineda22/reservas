@@ -162,4 +162,49 @@ export class ReservasController {
   static healthCheck(req, res) {
     res.send("server running");
   }
+
+  /**
+   * Endpoint de diagnóstico para verificar tablas de la base de datos
+   */
+  static async diagnosticTables(req, res) {
+    try {
+      const { pool } = await import("../config/database.js");
+
+      // Consultar tablas existentes
+      const tablesQuery = `
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND (table_name LIKE '%reservas%' OR table_name LIKE '%reserva%')
+        ORDER BY table_name;
+      `;
+
+      const tablesResult = await pool.query(tablesQuery);
+      const existingTables = tablesResult.rows.map((row) => row.table_name);
+
+      const expectedTables = [
+        "sala_juntas_reservas",
+        "sala_reserva_reservas",
+        "auditorio_reservas",
+      ];
+
+      const missingTables = expectedTables.filter(
+        (table) => !existingTables.includes(table)
+      );
+
+      res.json({
+        mensaje: "Diagnóstico de tablas completado",
+        tablas_existentes: existingTables,
+        tablas_esperadas: expectedTables,
+        tablas_faltantes: missingTables,
+        estado: missingTables.length === 0 ? "OK" : "FALTAN_TABLAS",
+      });
+    } catch (error) {
+      console.error("Error en diagnóstico:", error.message);
+      res.status(500).json({
+        mensaje: "Error al realizar diagnóstico",
+        error: error.message,
+      });
+    }
+  }
 }

@@ -124,6 +124,7 @@ export class ReservaModel {
    * @returns {Promise<Array>} Lista de todas las reservas
    */
   static async getAllForCalendar(salon = null) {
+    // Solo usar las dos tablas que realmente existen en la base de datos
     let query = `
       SELECT 
         salon, 
@@ -133,16 +134,7 @@ export class ReservaModel {
         TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
         motivo
       FROM sala_juntas_reservas
-      UNION
-      SELECT 
-        salon, 
-        nombre, 
-        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
-        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
-        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
-        motivo
-      FROM sala_reserva_reservas
-      UNION
+      UNION ALL
       SELECT 
         salon, 
         nombre, 
@@ -154,8 +146,13 @@ export class ReservaModel {
     `;
 
     const parametros = [];
+
+    // Si se especifica un salón, filtrar después del UNION
     if (salon) {
-      query += " WHERE salon = $1";
+      query = `
+        SELECT * FROM (${query}) AS todas_reservas 
+        WHERE salon = $1
+      `;
       parametros.push(salon);
     }
 
