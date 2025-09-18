@@ -70,27 +70,23 @@ export class ReservaModel {
   }
 
   /**
-   * Obtiene las reservas por salón y fecha
-   * @param {string} salon - Salón
-   * @param {string} fecha - Fecha
+   * Obtiene las reservas por salón y/o fecha de forma flexible
+   * @param {Object} filters - Objeto con los filtros (salon, fecha)
    * @returns {Promise<Array>} Lista de reservas
    */
-  static async getByDateAndSalon(salon, fecha) {
-    const tableName = getTableName(salon);
+  static async getByFilters({ salon, fecha }) {
+    // Usa getAllForCalendar que ya maneja el filtro por salón y une las tablas
+    let allReservations = await this.getAllForCalendar(salon);
 
-    const query = `
-      SELECT 
-        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
-        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
-        estado, 
-        nombre, 
-        motivo
-      FROM ${tableName}
-      WHERE salon = $1 AND fecha = $2;
-    `;
+    // Si se proporciona una fecha, filtra el resultado en memoria
+    if (fecha) {
+      const fechaStr = new Date(fecha).toISOString().split("T")[0];
+      allReservations = allReservations.filter(
+        (reserva) => reserva.fecha === fechaStr
+      );
+    }
 
-    const result = await pool.query(query, [salon, fecha]);
-    return result.rows;
+    return allReservations;
   }
 
   /**

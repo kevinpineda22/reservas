@@ -63,19 +63,41 @@ export class ReservasController {
 
   /**
    * Obtener reservas por salón y fecha
+   * NOTA: Se ha modificado para ser más flexible.
+   * Ahora filtra por salón, fecha o ambos.
    */
   static async obtenerReservas(req, res) {
     try {
       const { salon, fecha } = req.query;
 
-      if (!salon || !fecha) {
+      // Validar que al menos un parámetro esté presente
+      if (!salon && !fecha) {
         return res.status(400).json({
-          error: "Por favor, proporciona el salón y la fecha.",
+          error: "Por favor, proporciona el salón o la fecha para buscar.",
         });
       }
 
-      const horarios = await ReservaModel.getByDateAndSalon(salon, fecha);
-      res.json({ horarios });
+      // Validar que el salón sea válido si se proporciona
+      if (salon && !isValidSalon(salon)) {
+        return res.status(400).json({
+          error: "El salón proporcionado no es válido.",
+        });
+      }
+
+      // Llama al nuevo método del modelo que maneja la lógica de filtrado
+      const horarios = await ReservaModel.getByFilters({ salon, fecha });
+
+      if (horarios.length === 0) {
+        return res.status(404).json({
+          mensaje:
+            "No se encontraron reservas con los criterios especificados.",
+        });
+      }
+
+      res.status(200).json({
+        mensaje: "Reservas encontradas",
+        horarios,
+      });
     } catch (error) {
       console.error("Error al consultar la base de datos:", error);
       res.status(500).json({ error: "Error interno del servidor." });
