@@ -75,10 +75,8 @@ export class ReservaModel {
    * @returns {Promise<Array>} Lista de reservas
    */
   static async getByFilters({ salon, fecha }) {
-    // Usa getAllForCalendar que ya maneja el filtro por salón y une las tablas
     let allReservations = await this.getAllForCalendar(salon);
 
-    // Si se proporciona una fecha, filtra el resultado en memoria
     if (fecha) {
       const fechaStr = new Date(fecha).toISOString().split("T")[0];
       allReservations = allReservations.filter(
@@ -120,7 +118,6 @@ export class ReservaModel {
    * @returns {Promise<Array>} Lista de todas las reservas
    */
   static async getAllForCalendar(salon = null) {
-    // Solo usar las dos tablas que realmente existen en la base de datos
     let query = `
       SELECT 
         salon, 
@@ -143,7 +140,6 @@ export class ReservaModel {
 
     const parametros = [];
 
-    // Si se especifica un salón, filtrar después del UNION
     if (salon) {
       query = `
         SELECT * FROM (${query}) AS todas_reservas 
