@@ -62,16 +62,28 @@ export class ReservasController {
   }
 
   /**
-   * Obtener reservas por salón y fecha
+   * Obtener reservas por salón y/o fecha (con nombre opcional para filtrado adicional)
    */
   static async obtenerReservas(req, res) {
     try {
-      const { salon, fecha } = req.query;
+      const { salon, fecha, nombre } = req.query;
 
-      if (!salon || !fecha) {
-        return res.status(400).json({
-          error: "Por favor, proporciona el salón y la fecha para buscar.",
-        });
+      // Si se proporciona nombre, permitir búsqueda más flexible
+      if (nombre) {
+        // Cuando hay nombre, salon y fecha son opcionales
+        if (!salon && !fecha) {
+          return res.status(400).json({
+            error:
+              "Por favor, proporciona al menos el salón o la fecha junto con el nombre.",
+          });
+        }
+      } else {
+        // Sin nombre, se requieren ambos parámetros
+        if (!salon || !fecha) {
+          return res.status(400).json({
+            error: "Por favor, proporciona el salón y la fecha para buscar.",
+          });
+        }
       }
 
       if (salon && !isValidSalon(salon)) {
@@ -84,7 +96,8 @@ export class ReservasController {
 
       if (horarios.length === 0) {
         return res.status(200).json({
-          mensaje: "No se encontraron reservas para la fecha y el salón seleccionados.",
+          mensaje:
+            "No se encontraron reservas para los criterios seleccionados.",
           horarios: [],
         });
       }
