@@ -6,41 +6,47 @@ import dotenv from "dotenv";
 // Importar configuraciones y middleware
 import { connectDatabase } from "./src/config/database.js";
 import { corsOptions } from "./src/middleware/cors.js";
-import { errorHandler, notFoundHandler } from "./src/middleware/errorHandler.js";
+import {
+  errorHandler,
+  notFoundHandler,
+} from "./src/middleware/errorHandler.js";
 
 // Importar rutas
 import reservasRoutes from "./src/routes/reservasRoutes.js";
 
 // Configuración inicial
 dotenv.config();
-const port = process.env.PORT || 5200;
+const port = process.env.PORT || 3000;
 const app = express();
 
 // Middleware global
 app.use(cors(corsOptions));
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: "50mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "50mb" }));
 
-// Rutas
-app.use("/", reservasRoutes);
+// Ruta de bienvenida
+app.get("/", (req, res) => {
+  res.json({
+    message: "API de Reservas está corriendo.",
+    status: "active",
+  });
+});
+
+// Rutas de la API
+app.use("/api/reservas", reservasRoutes);
 
 // Middleware de manejo de errores (debe ir al final)
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// Inicializar servidor
-const startServer = async () => {
-  try {
-    // Conectar a la base de datos
-    await connectDatabase();
-    
-    // Iniciar servidor
-    app.listen(port, () => {
-      console.log(`Servidor corriendo en el puerto ${port}`);
-    });
-  } catch (error) {
-    console.error("Error al inicializar el servidor:", error);
-    process.exit(1);
-  }
-};
+// Verificar conexión a Supabase (sin bloquear el inicio)
+connectDatabase();
 
-startServer();
+// Iniciar servidor solo en desarrollo
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`Servidor corriendo en http://localhost:${port}`);
+  });
+}
+
+export default app;

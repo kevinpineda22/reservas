@@ -1,4 +1,4 @@
-import { pool } from "../config/database.js";
+import { supabaseAxios } from "../config/database.js";
 import { getTableName } from "../utils/tableNames.js";
 
 export class ReservaModel {
@@ -13,23 +13,21 @@ export class ReservaModel {
   static async checkConflict(fecha, salon, horaInicio, horaFinal) {
     const tableName = getTableName(salon);
 
-    const checkQuery = `
-      SELECT * FROM ${tableName}
-      WHERE fecha = $1 AND salon = $2
-      AND (
-        ($3 >= hora_inicio AND $3 < hora_fin) OR
-        ($4 > hora_inicio AND $4 <= hora_fin) OR
-        ($3 <= hora_inicio AND $4 >= hora_fin)
-      )
-    `;
+    try {
+      // Consulta con filtros RPC o usando operadores de PostgREST
+      const { data } = await supabaseAxios.get(`/${tableName}`, {
+        params: {
+          fecha: `eq.${fecha}`,
+          salon: `eq.${salon}`,
+          or: `(and(hora_inicio.lte.${horaInicio},hora_fin.gt.${horaInicio}),and(hora_inicio.lt.${horaFinal},hora_fin.gte.${horaFinal}),and(hora_inicio.gte.${horaInicio},hora_fin.lte.${horaFinal}))`,
+        },
+      });
 
-    const result = await pool.query(checkQuery, [
-      fecha,
-      salon,
-      horaInicio,
-      horaFinal,
-    ]);
-    return result.rows.length > 0;
+      return data && data.length > 0;
+    } catch (error) {
+      console.error("Error verificando conflictos:", error.message);
+      throw error;
+    }
   }
 
   /**
@@ -48,25 +46,31 @@ export class ReservaModel {
   }) {
     const tableName = getTableName(salon);
 
-    const insertQuery = `
-      INSERT INTO ${tableName}
-      (nombre, area, motivo, fecha, hora_inicio, hora_fin, estado, salon)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *
-    `;
+    try {
+      const { data } = await supabaseAxios.post(
+        `/${tableName}`,
+        {
+          nombre,
+          area,
+          motivo,
+          fecha,
+          hora_inicio: horaInicio,
+          hora_fin: horaFinal,
+          estado: "reservado",
+          salon,
+        },
+        {
+          headers: {
+            Prefer: "return=representation",
+          },
+        }
+      );
 
-    const result = await pool.query(insertQuery, [
-      nombre,
-      area,
-      motivo,
-      fecha,
-      horaInicio,
-      horaFinal,
-      "reservado",
-      salon,
-    ]);
-
-    return result.rows[0];
+      return data[0];
+    } catch (error) {
+      console.error("Error creando reserva:", error.message);
+      throw error;
+    }
   }
 
   /**
@@ -95,21 +99,25 @@ export class ReservaModel {
   static async cancel({ nombre, salon, fecha, hora_inicio, hora_fin }) {
     const tableName = getTableName(salon);
 
-    const deleteQuery = `
-      DELETE FROM ${tableName}
-      WHERE nombre = $1 AND salon = $2 AND fecha = $3 AND hora_inicio = $4 AND hora_fin = $5
-      RETURNING *;
-    `;
+    try {
+      const { data } = await supabaseAxios.delete(`/${tableName}`, {
+        params: {
+          nombre: `eq.${nombre}`,
+          salon: `eq.${salon}`,
+          fecha: `eq.${fecha}`,
+          hora_inicio: `eq.${hora_inicio}`,
+          hora_fin: `eq.${hora_fin}`,
+        },
+        headers: {
+          Prefer: "return=representation",
+        },
+      });
 
-    const result = await pool.query(deleteQuery, [
-      nombre,
-      salon,
-      fecha,
-      hora_inicio,
-      hora_fin,
-    ]);
-
-    return result.rows.length > 0;
+      return data && data.length > 0;
+    } catch (error) {
+      console.error("Error cancelando reserva:", error.message);
+      throw error;
+    }
   }
 
   /**
@@ -118,37 +126,36 @@ export class ReservaModel {
    * @returns {Promise<Array>} Lista de todas las reservas
    */
   static async getAllForCalendar(salon = null) {
-    let query = `
-      SELECT 
-        salon, 
-        nombre, 
-        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
-        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
-        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
-        motivo
-      FROM sala_juntas_reservas
-      UNION ALL
-      SELECT 
-        salon, 
-        nombre, 
-        TO_CHAR(fecha, 'YYYY-MM-DD') AS fecha, 
-        TO_CHAR(hora_inicio, 'HH24:MI') AS hora_inicio, 
-        TO_CHAR(hora_fin, 'HH24:MI') AS hora_fin, 
-        motivo
-      FROM auditorio_reservas
-    `;
+    try {
+      // Obtener reservas de ambas tablas
+      const [salaJuntasRes, auditorioRes] = await Promise.all([
+        supabaseAxios.get("/sala_juntas_reservas", {
+          params: {
+            select: "salon,nombre,fecha,hora_inicio,hora_fin,motivo",
+            ...(salon && { salon: `eq.${salon}` }),
+          },
+        }),
+        supabaseAxios.get("/auditorio_reservas", {
+          params: {
+            select: "salon,nombre,fecha,hora_inicio,hora_fin,motivo",
+            ...(salon && { salon: `eq.${salon}` }),
+          },
+        }),
+      ]);
 
-    const parametros = [];
+      const allReservations = [
+        ...(salaJuntasRes.data || []),
+        ...(auditorioRes.data || []),
+      ];
 
-    if (salon) {
-      query = `
-        SELECT * FROM (${query}) AS todas_reservas 
-        WHERE salon = $1
-      `;
-      parametros.push(salon);
+      // Formatear las fechas y horas
+      return allReservations.map((reserva) => ({
+        ...reserva,
+        fecha: reserva.fecha ? reserva.fecha.split("T")[0] : reserva.fecha,
+      }));
+    } catch (error) {
+      console.error("Error obteniendo reservas:", error.message);
+      throw error;
     }
-
-    const result = await pool.query(query, parametros);
-    return result.rows;
   }
 }
