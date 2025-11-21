@@ -19,7 +19,11 @@
   "engines": {
     "node": ">=18.x"
   },
-  "keywords": ["reservas", "api", "supabase"],
+  "keywords": [
+    "reservas",
+    "api",
+    "supabase"
+  ],
   "author": "",
   "license": "ISC"
 }
